@@ -72,7 +72,7 @@ We assume the root path for the dataset is `./Dataset`, and the path for the DLP
    Results are outputted to `./figures.`
    Input variables: `dataset` is the dataset name, `slide` is the slice name, `n_clusters` is the number of clusters (default is 20), `label` indicates whether the image includes class labels.
    ```bash
-   image_step4_show.py --dataset DLPFC --slide 151673 --n_clusters 20 --label True
+   python image_step4_show.py --dataset DLPFC --slide 151673 --n_clusters 20 --label True
    ```
 
 
