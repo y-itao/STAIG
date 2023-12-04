@@ -57,9 +57,9 @@ We assume the root path for the dataset is `./Dataset`, and the path for the DLP
    ```
 2. **Further Processing with Gaussian Blur and Bandpass Filters**
    Processed images are stored in `./Dataset/DLPFC/151673/clip_image_filter.`
-   Input variables: `dataset` is the dataset name, `slide` is the slice name, `lower` and `upper` are the lower and upper frequency limits for the bandpass filter, typically around half the value of `patch_size` (default is `245-270`).
+   Input variables: `dataset` is the dataset name, `slide` is the slice name, `lower` and `upper` are the lower and upper frequency limits for the bandpass filter, typically around half the value of `patch_size` (default is `245-275`).
    ```bash
-   python image_step2_filter.py --dataset DLPFC --slide 151673 --lower 245 --upper 270
+   python image_step2_filter.py --dataset DLPFC --slide 151673 --lower 245 --upper 275
    ```
 3. **Feature Extraction using BYOL**
    Extracted image features are stored in `./Dataset/DLPFC/151673/embeddings.npy`.
