@@ -47,6 +47,32 @@ This section details the steps to set up the project environment using Anaconda.
    ```
 ## Usage
 ### Extract image features by BYOL
+We assume the root path for the dataset is `./Dataset`, and the path for the DLPFC dataset's 151673 slice is `./Dataset/DLPFC/151673`.
 
+1. **Image Cropping Based on Coordinates**
+   The cropped images are stored in `./Dataset/DLPFC/151673/clip_image`.
+   Input variables: `dataset` is the dataset name, `slide` is the slice name, `patch_size` is the size of the cropped image (default is 512), `label` indicates whether the image includes class labels.
+   ```bash
+   python image_step1_clip.py --dataset DLPFC --slide 151673 --patch_size 512 --label True
+   ```
+2. **Further Processing with Gaussian Blur and Bandpass Filters**
+   Processed images are stored in `./Dataset/DLPFC/151673/clip_image_filter.`
+   Input variables: `dataset` is the dataset name, `slide` is the slice name, `lower` and `upper` are the lower and upper frequency limits for the bandpass filter, typically around half the value of `patch_size` (default is `245-270`).
+   ```bash
+   python image_step2_filter.py --dataset DLPFC --slide 151673 --lower 245 --upper 270
+   ```
+3. **Feature Extraction using BYOL**
+   Extracted image features are stored in `./Dataset/DLPFC/151673/embeddings.npy`.
+   Input variables: `dataset` is the dataset name, `slide` is the slice name, `epoch_num` is the number of iterations.
+   ```bash
+   python image_step3_byol.py --dataset DLPFC --slide 151673 --epoch_num 200
+   ```
+
+4. **Displaying Image Features with KNN**
+   Results are outputted to `./figures.`
+   Input variables: `dataset` is the dataset name, `slide` is the slice name, `n_clusters` is the number of clusters (default is 20), `label` indicates whether the image includes class labels.
+   ```bash
+   image_step4_show.py --dataset DLPFC --slide 151673 --n_clusters 20 --label True
+   ```
 
 
