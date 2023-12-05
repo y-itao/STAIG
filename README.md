@@ -74,5 +74,24 @@ We assume the root path for the dataset is `./Dataset`, and the path for the DLP
    ```bash
    python image_step4_show.py --dataset DLPFC --slide 151673 --n_clusters 20 --label True
    ```
+### 10x visium平台的Spatial Domain 识别（以#151673为例）
+主要运行的脚本为train_with_image.py, 具体的超参可以由外置的train_img_config.yaml控制。
+train_with_image.py由四个，'--dataset'是数据集名字(默认为DLPFC)，'--slide'切片名字（默认为151673）,'--label'是否存在类标（默认为true），'--config'其他超参的yaml配置文件
+```bash
+python train_with_image.py --dataset DLPFC  --slide 151673  --label True --config train_img_config.yaml
+```
+the cluster result is shown in `./figures`
+注意，事例结果从我们在linux的A100显卡的实验下获得。训练完成的model参数提供在‘./example_model/151673/model.pt’。
+### 其他平台的spatial domain 识别
+主要运行的脚本为train_without_image.py, 具体的超参可以由外置的train_no_img_config.yaml控制。
+数据集事先转化为h5ad形式，并且已经做好前置处理。
+train_with_image.py由四个，'--dataset'是数据集名字，'--slide'切片名字，，'--config'其他超参的yaml配置文件
+```bash
+python train_without_image.py 
+```
+the cluster result is shown in `./figures`
+### alignment free integration （10x visium）
+1. **vertical integration**
+
 
 
