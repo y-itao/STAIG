@@ -102,7 +102,7 @@ The clustering result is displayed in `./figures`.
 
 ### Alignment-Free Integration (10x Visium)
 
-Before running, please download the compressed folder of the `Dataset` from [xxx] and decompress it in `./`, After decompression, the file structure under `./` will be: xxx.
+Before running, please download the compressed folder of the `Dataset` from [Google drive](https://drive.google.com/file/d/1l-OjlHjT8evJIJzUye-3s5tlfArHvUEO/view?usp=sharing) and decompress it in `./`, After decompression, the file structure under `./` will be: xxx.
 
 1. **vertical integration**
 
