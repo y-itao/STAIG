@@ -48,7 +48,7 @@ This section details the steps to set up the project environment using Anaconda.
 
 Note that we conducted experiments with the A100 on Linux. 
 
-Before running, please download the compressed folder of the `Dataset` from [Google drive](https://drive.google.com/file/d/1l-OjlHjT8evJIJzUye-3s5tlfArHvUEO/view?usp=sharing) and decompress it in `./`, After decompression, the dir structure under `./` will be: 
+Before running, please download the compressed folder of the `Dataset` from [Google drive](https://drive.google.com/file/d/1IP5AO9f_4V9Z4ZW7Ro2KuiYHpVu24Qe4/view?usp=sharing) and decompress it in `./`, After decompression, the dir structure under `./` will be: 
 
 ```bash
 /home/.../STAIG
