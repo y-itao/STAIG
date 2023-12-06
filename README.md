@@ -85,15 +85,18 @@ python example_train_with_image.py --dataset DLPFC  --slide 151673  --label True
 The clustering result is displayed in `./figures`.
 The trained model parameters are available in `./example_model/151673/model.pt`.
 
-### 其他平台的spatial domain 识别
-主要运行的脚本为train_without_image.py, 具体的超参可以由外置的train_no_img_config.yaml控制。
-数据集事先转化为h5ad形式，并且已经做好前置处理。
-train_with_image.py由四个，'--dataset'是数据集名字，'--slide'切片名字，，'--config'其他超参的yaml配置文件，默认为train_no_img_config.yaml
+### Spatial Domain Identification on Other Platforms
+The main script for execution is `train_without_image.py`, with specific hyperparameters controllable through an external `train_no_img_config.yaml`.
+The dataset is pre-converted into `h5ad` format and pre-processed.
+`train_without_image.py` accepts four arguments: `--dataset` for the dataset name, `--slide` for the slide name, and `--config` for other hyperparameters in the yaml configuration file, by default `train_no_img_config.yaml`.
+
 ```bash
 python example_train_without_image.py 
 ```
-the cluster result is shown in `./figures`
-### alignment free integration （10x visium）
+The clustering result is displayed in `./figures`.
+
+### Alignment-Free Integration (10x Visium)
+Before running, please download the compressed folder of the `Dataset` from [xxx] and decompress it in `./`, After decompression, the file structure under `./` will be: xxx.
 在运行之前，请从xxx下载Dataset文件夹的压缩包，并解压至./下，解压完成后，./的下的文件结构为：xxx。
 1. **vertical integration**
 example_integration_vertical.py传入参数为四个'--dataset'是数据集名字(默认为DLPFC)，'--slide'切片名字（默认为integration_vertical）,'--label'是否存在类标（默认为true），'--config'其他超参的yaml配置文件，默认为train_img_config.yaml， ‘--filelist’ 整合的切片的名字 以空格为间隔 ，result is shown in `./figures`
