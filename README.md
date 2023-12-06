@@ -9,6 +9,7 @@ This section details the steps to set up the project environment using Anaconda.
 
 ### Prerequisites
 
+- R with Mclust package
 - Python 3.10.11
 - pytorch==1.13.1
 
@@ -46,6 +47,7 @@ This section details the steps to set up the project environment using Anaconda.
    pip install -r requirements.txt
    ```
 ## Usage
+Note that we conducted experiments with the A100 on Linux. 
 ### Extract image features by BYOL
 We assume the root path for the dataset is `./Dataset`, and the path for the DLPFC dataset's 151673 slice is `./Dataset/DLPFC/151673`.
 
@@ -74,28 +76,55 @@ We assume the root path for the dataset is `./Dataset`, and the path for the DLP
    ```bash
    python image_step4_show.py --dataset DLPFC --slide 151673 --n_clusters 20 --label True
    ```
-### 10x visium平台的Spatial Domain 识别（以#151673为例）
-主要运行的脚本为train_with_image.py, 具体的超参可以由外置的train_img_config.yaml控制。
-train_with_image.py由四个，'--dataset'是数据集名字(默认为DLPFC)，'--slide'切片名字（默认为151673）,'--label'是否存在类标（默认为true），'--config'其他超参的yaml配置文件
+### Spatial Domain Identification on the 10x Visium Platform (Case #151673)
+The primary script for execution is `train_with_image.py`, with specific hyperparameters controllable through an external `train_img_config.yaml`.
+`train_with_image.py` accepts four arguments: `--dataset` for the dataset name (default is DLPFC), `--slide` for the slide name (default is 151673), `--label` indicating if class labels exist (default is true), and `--config` for other hyperparameters in the yaml configuration file, by default `train_img_config.yaml`.
 ```bash
 python example_train_with_image.py --dataset DLPFC  --slide 151673  --label True --config train_img_config.yaml
 ```
-the cluster result is shown in `./figures`
-注意，事例结果从我们在linux的A100显卡的实验下获得。训练完成的model参数提供在‘./example_model/151673/model.pt’。
+The clustering result is displayed in `./figures`.
+The trained model parameters are available in `./example_model/151673/model.pt`.
+
 ### 其他平台的spatial domain 识别
 主要运行的脚本为train_without_image.py, 具体的超参可以由外置的train_no_img_config.yaml控制。
 数据集事先转化为h5ad形式，并且已经做好前置处理。
-train_with_image.py由四个，'--dataset'是数据集名字，'--slide'切片名字，，'--config'其他超参的yaml配置文件
+train_with_image.py由四个，'--dataset'是数据集名字，'--slide'切片名字，，'--config'其他超参的yaml配置文件，默认为train_no_img_config.yaml
 ```bash
 python example_train_without_image.py 
 ```
 the cluster result is shown in `./figures`
 ### alignment free integration （10x visium）
+在运行之前，请从xxx下载Dataset文件夹的压缩包，并解压至./下，解压完成后，./的下的文件结构为：xxx。
 1. **vertical integration**
+example_integration_vertical.py传入参数为四个'--dataset'是数据集名字(默认为DLPFC)，'--slide'切片名字（默认为integration_vertical）,'--label'是否存在类标（默认为true），'--config'其他超参的yaml配置文件，默认为train_img_config.yaml， ‘--filelist’ 整合的切片的名字 以空格为间隔 ，result is shown in `./figures`
 ```bash
 python example_integration_vertical.py  --filelist 151675 151676
 python example_integration_partial.py  --filelist WS_PLA_S9101764 WS_PLA_S9101765 WS_PLA_S9101767
 python example_integration_horizontal.py  --filelist Mouse_Brain_Anterior Mouse_Brain_Posterior
 ```
+2. **horizontal integration （mouse brain）**
+```bash
+python example_integration_horizontal.py  --filelist Mouse_Brain_Anterior Mouse_Brain_Posterior
+```
+3. **partial integration**
+```bash
+python example_integration_partial.py  --filelist WS_PLA_S9101764 WS_PLA_S9101765 WS_PLA_S9101767
+```
 
+## Compared tools
+Tools that are compared include: 
+* [stLearn](https://github.com/BiomedicalMachineLearning/stLearn)
+* [SpaGCN](https://github.com/jianhuupenn/SpaGCN)
+* [Seurat](https://satijalab.org/seurat/)
+* [SEDR](https://github.com/JinmiaoChenLab/SEDR/)
+* [DeepST](https://github.com/JiangBioLab/DeepST)
+* [GraphST](https://github.com/JinmiaoChenLab/GraphST)
+* [ConST](https://github.com/ys-zong/conST)
+* [STAGATE](https://github.com/zhanglabtools/STAGATE)
+
+## Download data
+我们训练所使用的数据可以从[zheli](xxxx)下载获得，我们也提供了通过STAIG处理后的数据集，你可以从[此处下载](xxxx)（h5ad形式，其中obs['domian']为聚类结果，obsm['emb']为低维特征，obsm['img_emb']为降维后的图像特征）
+
+## 致谢
+我们的工作的部分代码参考自[GraphST](https://github.com/JinmiaoChenLab/GraphST)，[GCA](https://github.com/CRIPAC-DIG/GCA)，[GDCL](https://github.com/hzhao98/GDCL)以及[NCLA](https://github.com/shenxiaocam/NCLA).非常感谢。另外感谢WANG Tao提供的帮助。
 
