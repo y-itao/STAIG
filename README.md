@@ -172,7 +172,7 @@ Tools that are compared include:
 
 ## Download data
 
-The data we used for training can be downloaded from [here]. We also provide datasets processed by STAIG, which can be downloaded from [here] (in `h5ad` format, where `obs['domain']` is the clustering result, `obsm['emb']` is the low-dimensional feature, and `obsm['img_emb']` is the image feature after dimensionality reduction).
+The data we used for training can be downloaded from [here]. We also provide datasets processed by STAIG, which can be downloaded from [here](https://drive.google.com/file/d/1wxmRnhjXxH3eV52dvv5d7gH_YM9Ist14/view?usp=sharing) (in `h5ad` format, where `obs['domain']` is the clustering result, `obsm['emb']` is the low-dimensional feature, and `obsm['img_emb']` is the image feature after dimensionality reduction).
 
 ## Acknowledgments
 Parts of our work are based on code from [GraphST](https://github.com/JinmiaoChenLab/GraphST)，[GCA](https://github.com/CRIPAC-DIG/GCA)，[GDCL](https://github.com/hzhao98/GDCL)以及[NCLA](https://github.com/shenxiaocam/NCLA).We are very grateful for their contributions. Thank WANG Tao for his assistance.
