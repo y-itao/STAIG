@@ -48,6 +48,45 @@ This section details the steps to set up the project environment using Anaconda.
 
 Note that we conducted experiments with the A100 on Linux. 
 
+Before running, please download the compressed folder of the `Dataset` from [Google drive](https://drive.google.com/file/d/1l-OjlHjT8evJIJzUye-3s5tlfArHvUEO/view?usp=sharing) and decompress it in `./`, After decompression, the dir structure under `./` will be: 
+
+```bash
+/home/.../STAIG
+├── Dataset
+│   ├── DLPFC
+│   │   ├── 151508
+│   │   │   └── spatial
+│   │   ├── 151509
+│   │   │   └── spatial
+│   │   ├── 151673
+│   │   │   ├── clip_image
+│   │   │   ├── clip_image_filter
+│   │   │   └── spatial
+│   │   ├── 151675
+│   │   │   └── spatial
+│   │   └── 151676
+│   │       └── spatial
+│   ├── stereo-seq
+│   │   └── Mouse_Olfactory
+│   └── visium
+│       ├── Mouse_Brain_Anterior
+│       │   └── spatial
+│       ├── Mouse_Brain_Posterior
+│       │   └── spatial
+│       └── human_placental_bed
+│           ├── WS_PLA_S9101764
+│           │   └── spatial
+│           ├── WS_PLA_S9101765
+│           │   └── spatial
+│           └── WS_PLA_S9101767
+│               └── spatial
+├── example_model
+│   └── 151673
+└── staig
+│
+│ ...(many py scripts)
+```
+
 ### Extract image features by BYOL
 
 We assume the root path for the dataset is `./Dataset`, and the path for the DLPFC dataset's 151673 slice is `./Dataset/DLPFC/151673`.
@@ -101,8 +140,6 @@ python example_train_without_image.py
 The clustering result is displayed in `./figures`.
 
 ### Alignment-Free Integration (10x Visium)
-
-Before running, please download the compressed folder of the `Dataset` from [Google drive](https://drive.google.com/file/d/1l-OjlHjT8evJIJzUye-3s5tlfArHvUEO/view?usp=sharing) and decompress it in `./`, After decompression, the file structure under `./` will be: xxx.
 
 1. **vertical integration**
 
