@@ -23,7 +23,7 @@ This section details the steps to set up the project environment using Anaconda.
    ```
    **or download the code**:
    ```bash
-   wget xxxx/main.zip
+   wget https://github.com/y-itao/STAIG/archive/refs/heads/main.zip
    unzip main.zip
    cd /home/.../STAIG-main  ### your own path
    ```
