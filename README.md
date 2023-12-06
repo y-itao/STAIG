@@ -97,13 +97,14 @@ The clustering result is displayed in `./figures`.
 
 ### Alignment-Free Integration (10x Visium)
 Before running, please download the compressed folder of the `Dataset` from [xxx] and decompress it in `./`, After decompression, the file structure under `./` will be: xxx.
-在运行之前，请从xxx下载Dataset文件夹的压缩包，并解压至./下，解压完成后，./的下的文件结构为：xxx。
+
+
 1. **vertical integration**
 example_integration_vertical.py传入参数为四个'--dataset'是数据集名字(默认为DLPFC)，'--slide'切片名字（默认为integration_vertical）,'--label'是否存在类标（默认为true），'--config'其他超参的yaml配置文件，默认为train_img_config.yaml， ‘--filelist’ 整合的切片的名字 以空格为间隔 ，result is shown in `./figures`
+`example_integration_vertical.py` takes four parameters: `--dataset` for the dataset name (default is DLPFC), `--slide` for the slide name (default is `integration_vertical`), `--label` indicating if class labels exist (default is true), `--config` for other hyperparameters in the yaml configuration file, default is `train_img_config.yaml`, and `--filelist` for the names of slides to integrate, separated by spaces. The result is shown in `./figures`.
+
 ```bash
 python example_integration_vertical.py  --filelist 151675 151676
-python example_integration_partial.py  --filelist WS_PLA_S9101764 WS_PLA_S9101765 WS_PLA_S9101767
-python example_integration_horizontal.py  --filelist Mouse_Brain_Anterior Mouse_Brain_Posterior
 ```
 2. **horizontal integration （mouse brain）**
 ```bash
@@ -128,6 +129,8 @@ Tools that are compared include:
 ## Download data
 我们训练所使用的数据可以从[zheli](xxxx)下载获得，我们也提供了通过STAIG处理后的数据集，你可以从[此处下载](xxxx)（h5ad形式，其中obs['domian']为聚类结果，obsm['emb']为低维特征，obsm['img_emb']为降维后的图像特征）
 
-## 致谢
-我们的工作的部分代码参考自[GraphST](https://github.com/JinmiaoChenLab/GraphST)，[GCA](https://github.com/CRIPAC-DIG/GCA)，[GDCL](https://github.com/hzhao98/GDCL)以及[NCLA](https://github.com/shenxiaocam/NCLA).非常感谢。另外感谢WANG Tao提供的帮助。
+The data we used for training can be downloaded from [here]. We also provide datasets processed by STAIG, which can be downloaded from [here] (in `h5ad` format, where `obs['domain']` is the clustering result, `obsm['emb']` is the low-dimensional feature, and `obsm['img_emb']` is the image feature after dimensionality reduction).
+
+## Acknowledgments
+Parts of our work are based on code from [GraphST](https://github.com/JinmiaoChenLab/GraphST)，[GCA](https://github.com/CRIPAC-DIG/GCA)，[GDCL](https://github.com/hzhao98/GDCL)以及[NCLA](https://github.com/shenxiaocam/NCLA).We are very grateful for their contributions. Thank WANG Tao for his assistance.
 
