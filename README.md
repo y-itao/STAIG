@@ -18,8 +18,8 @@ This section details the steps to set up the project environment using Anaconda.
 
 1. **Clone the Repository**:
    ```bash
-   git clone your-git-repo-url
-   cd xxx
+   git clone https://github.com/y-itao/STAIG.git
+   cd STAIG
    ```
    **or download the code**:
    ```bash
