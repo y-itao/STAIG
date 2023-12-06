@@ -1,0 +1,78 @@
+151673:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_feature_rate_1: 0.1
+  drop_feature_rate_2: 0.2
+  tau: 39.0
+  num_epochs: 340
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 3000
+  num_neigh: 5
+
+integration_vertical:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.1
+  drop_feature_rate_2: 0.2
+  tau: 20
+  tau_decay: 0.08
+  num_epochs: 180
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 3000
+  num_neigh: 5
+
+human_placental_bed:
+  seed: 36666
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_edge_rate_1: 0.2
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.2
+  drop_feature_rate_2: 0.2
+  tau: 17.0
+  tau_decay: 0.0
+  num_epochs: 10
+  weight_decay: 0.00001
+  num_clusters: 10
+  num_gene: 3000
+  num_neigh: 5
+  num_im_neigh: 2
+
+integration_horizontal:
+  seed: 36666
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_edge_rate_1: 0.2
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.2
+  drop_feature_rate_2: 0.2
+  tau: 17.0
+  tau_decay: 0.0
+  num_epochs: 6
+  weight_decay: 0.00001
+  num_clusters: 30
+  num_gene: 3000
+  num_neigh: 5
+  num_im_neigh: 2

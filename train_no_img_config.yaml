@@ -1,0 +1,19 @@
+Mouse_Olfactory:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 2
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.01
+  drop_feature_rate_2: 0.02
+  tau: 6
+  tau_decay: 0.00
+  num_epochs: 50
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 3000
+  num_neigh: 5
