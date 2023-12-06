@@ -38,11 +38,8 @@ This section details the steps to set up the project environment using Anaconda.
    conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 -c pytorch
 
    ## step2 Installing Pyg
-   # For GPU:
    conda install pyg -c pyg
-   
-   # For CPU (Mac os wtih M1,2,3):
-   
+      
    ## step3 Download other dependencies
    pip install -r requirements.txt
    ```
@@ -100,7 +97,6 @@ Before running, please download the compressed folder of the `Dataset` from [xxx
 
 
 1. **vertical integration**
-example_integration_vertical.py传入参数为四个'--dataset'是数据集名字(默认为DLPFC)，'--slide'切片名字（默认为integration_vertical）,'--label'是否存在类标（默认为true），'--config'其他超参的yaml配置文件，默认为train_img_config.yaml， ‘--filelist’ 整合的切片的名字 以空格为间隔 ，result is shown in `./figures`
 `example_integration_vertical.py` takes four parameters: `--dataset` for the dataset name (default is DLPFC), `--slide` for the slide name (default is `integration_vertical`), `--label` indicating if class labels exist (default is true), `--config` for other hyperparameters in the yaml configuration file, default is `train_img_config.yaml`, and `--filelist` for the names of slides to integrate, separated by spaces. The result is shown in `./figures`.
 
 ```bash
@@ -127,7 +123,6 @@ Tools that are compared include:
 * [STAGATE](https://github.com/zhanglabtools/STAGATE)
 
 ## Download data
-我们训练所使用的数据可以从[zheli](xxxx)下载获得，我们也提供了通过STAIG处理后的数据集，你可以从[此处下载](xxxx)（h5ad形式，其中obs['domian']为聚类结果，obsm['emb']为低维特征，obsm['img_emb']为降维后的图像特征）
 
 The data we used for training can be downloaded from [here]. We also provide datasets processed by STAIG, which can be downloaded from [here] (in `h5ad` format, where `obs['domain']` is the clustering result, `obsm['emb']` is the low-dimensional feature, and `obsm['img_emb']` is the image feature after dimensionality reduction).
 
