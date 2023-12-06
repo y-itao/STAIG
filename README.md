@@ -1,5 +1,6 @@
 # STAIG
 STAIG: Spatial Transcriptomics Analysis via Image-Aided Graph Contrastive Learning for Domain Deciphering and Alignment-Free Integration
+
 ## Overview
 We unveil Spatial Transcriptomics and Image-based Graph learning (STAIG), a deep learning framework for advanced spatial region identification in spatial transcriptomics. STAIG integrates gene expression, spatial coordinates, and histological images using graph contrastive learning, excelling in feature extraction and enhancing analysis on datasets with or without histological images. STAIG was specifically engineered to counter batch effects and to allow for the integration of tissue slices without pre-alignment. It is compatible with multiple platforms, including 10x Visium, Slide-seq, Stereo-seq, and STARmap.
 
@@ -44,8 +45,11 @@ This section details the steps to set up the project environment using Anaconda.
    pip install -r requirements.txt
    ```
 ## Usage
+
 Note that we conducted experiments with the A100 on Linux. 
+
 ### Extract image features by BYOL
+
 We assume the root path for the dataset is `./Dataset`, and the path for the DLPFC dataset's 151673 slice is `./Dataset/DLPFC/151673`.
 
 1. **Image Cropping Based on Coordinates**
@@ -74,6 +78,7 @@ We assume the root path for the dataset is `./Dataset`, and the path for the DLP
    python image_step4_show.py --dataset DLPFC --slide 151673 --n_clusters 20 --label True
    ```
 ### Spatial Domain Identification on the 10x Visium Platform (Case #151673)
+
 The primary script for execution is `train_with_image.py`, with specific hyperparameters controllable through an external `train_img_config.yaml`.
 `train_with_image.py` accepts four arguments: `--dataset` for the dataset name (default is DLPFC), `--slide` for the slide name (default is 151673), `--label` indicating if class labels exist (default is true), and `--config` for other hyperparameters in the yaml configuration file, by default `train_img_config.yaml`.
 ```bash
@@ -83,8 +88,11 @@ The clustering result is displayed in `./figures`.
 The trained model parameters are available in `./example_model/151673/model.pt`.
 
 ### Spatial Domain Identification on Other Platforms
+
 The main script for execution is `train_without_image.py`, with specific hyperparameters controllable through an external `train_no_img_config.yaml`.
+
 The dataset is pre-converted into `h5ad` format and pre-processed.
+
 `train_without_image.py` accepts four arguments: `--dataset` for the dataset name, `--slide` for the slide name, and `--config` for other hyperparameters in the yaml configuration file, by default `train_no_img_config.yaml`.
 
 ```bash
@@ -93,10 +101,11 @@ python example_train_without_image.py
 The clustering result is displayed in `./figures`.
 
 ### Alignment-Free Integration (10x Visium)
+
 Before running, please download the compressed folder of the `Dataset` from [xxx] and decompress it in `./`, After decompression, the file structure under `./` will be: xxx.
 
-
 1. **vertical integration**
+
 `example_integration_vertical.py` takes four parameters: `--dataset` for the dataset name (default is DLPFC), `--slide` for the slide name (default is `integration_vertical`), `--label` indicating if class labels exist (default is true), `--config` for other hyperparameters in the yaml configuration file, default is `train_img_config.yaml`, and `--filelist` for the names of slides to integrate, separated by spaces. The result is shown in `./figures`.
 
 ```bash
@@ -112,7 +121,9 @@ python example_integration_partial.py  --filelist WS_PLA_S9101764 WS_PLA_S910176
 ```
 
 ## Compared tools
+
 Tools that are compared include: 
+
 * [stLearn](https://github.com/BiomedicalMachineLearning/stLearn)
 * [SpaGCN](https://github.com/jianhuupenn/SpaGCN)
 * [Seurat](https://satijalab.org/seurat/)
