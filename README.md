@@ -4,6 +4,21 @@ STAIG: Spatial Transcriptomics Analysis via Image-Aided Graph Contrastive Learni
 ## Overview
 We unveil Spatial Transcriptomics and Image-based Graph learning (STAIG), a deep learning framework for advanced spatial region identification in spatial transcriptomics. STAIG integrates gene expression, spatial coordinates, and histological images using graph contrastive learning, excelling in feature extraction and enhancing analysis on datasets with or without histological images. STAIG was specifically engineered to counter batch effects and to allow for the integration of tissue slices without pre-alignment. It is compatible with multiple platforms, including 10x Visium, Slide-seq, Stereo-seq, and STARmap.
 
+## System Requirements
+
+***Hardware Requirements***
+To ensure optimal performance, it is recommended that your system has the following hardware specifications:
+
+***Memory:*** 16GB or higher for efficient processing.
+***GPU:*** NVIDIA GPU (A100/3090) is highly recommended for accelerating training times.
+
+***Operating System Requirements***
+The software is compatible with the following operating systems:
+
+***macOS:*** Mojave (10.14.1) or later versions.
+***Linux:*** Ubuntu 16.04 or newer.
+
+
 ## Environment Setup
 
 This section details the steps to set up the project environment using Anaconda.
@@ -15,6 +30,8 @@ This section details the steps to set up the project environment using Anaconda.
 - pytorch==1.13.1
 
 ### Cloning the Repository and Preparing the Environment
+
+Actual installation time depends on network conditions and takes about 15 minutes.
 
 1. **Clone the Repository**:
    ```bash
