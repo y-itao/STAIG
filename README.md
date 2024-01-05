@@ -6,17 +6,15 @@ We unveil Spatial Transcriptomics and Image-based Graph learning (STAIG), a deep
 
 ## System Requirements
 
-***Hardware Requirements***
-To ensure optimal performance, it is recommended that your system has the following hardware specifications:
+### Hardware Requirements
 
-***Memory:*** 16GB or higher for efficient processing.
-***GPU:*** NVIDIA GPU (A100/3090) is highly recommended for accelerating training times.
+- Memory: 16GB or higher for efficient processing.
+- GPU: NVIDIA GPU (A100/3090) is highly recommended for accelerating training times.
 
-***Operating System Requirements***
-The software is compatible with the following operating systems:
+### Operating System Requirements
 
-***macOS:*** Mojave (10.14.1) or later versions.
-***Linux:*** Ubuntu 16.04 or newer.
+- macOS: Mojave (10.14.1) or later versions.
+- Linux: Ubuntu 16.04 or newer.
 
 
 ## Environment Setup
