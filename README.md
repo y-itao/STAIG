@@ -67,39 +67,52 @@ Before running, please download the compressed folder of the `Dataset` from [Goo
 
 ```bash
 /home/.../STAIG
-├── Dataset
-│   ├── DLPFC
-│   │   ├── 151508
-│   │   │   └── spatial
-│   │   ├── 151509
-│   │   │   └── spatial
-│   │   ├── 151673
-│   │   │   ├── clip_image
-│   │   │   ├── clip_image_filter
-│   │   │   └── spatial
-│   │   ├── 151675
-│   │   │   └── spatial
-│   │   └── 151676
-│   │       └── spatial
-│   ├── stereo-seq
-│   │   └── Mouse_Olfactory
-│   └── visium
-│       ├── Mouse_Brain_Anterior
-│       │   └── spatial
-│       ├── Mouse_Brain_Posterior
-│       │   └── spatial
-│       └── human_placental_bed
-│           ├── WS_PLA_S9101764
-│           │   └── spatial
-│           ├── WS_PLA_S9101765
-│           │   └── spatial
-│           └── WS_PLA_S9101767
-│               └── spatial
-├── example_model
-│   └── 151673
-└── staig
-│
-│ ...(many py scripts)
+|-- Dataset
+|   |-- 9.Mouse_Brain_Merge_Anterior_Posterior_Section_1
+|   |   `-- filtered_feature_bc_matrix.h5ad
+|   |-- DLPFC
+|   |   |-- 151507
+|   |   |-- 151508
+|   |   |-- 151673
+|   |   |-- 151675
+|   |   `-- 151676
+|   |-- Slide-seqV2
+|   |   `-- v2.h5ad
+|   |-- merfish
+|   |   |-- mouse1.AUD_TEA_VIS.242.unexpand_cluster3.h5ad
+|   |   `-- mouse2.AUD_TEA_VIS.242.unexpand_cluster3.h5ad
+|   |-- stereo-seq
+|   |   `-- Mouse_Olfactory
+|   `-- visium
+|       |-- Human_Breast_Cancer
+|       |-- Mouse_Brain_Anterior
+|       `-- Mouse_Brain_Posterior
+|-- example
+|   |-- Image_feature_extraction-151507.ipynb
+|   |-- Image_feature_extraction-151673.ipynb
+|   |-- Image_feature_extraction-BreastCancer.ipynb
+|   |-- Integration_cross-mini.ipynb
+|   |-- Integration_horizontal.ipynb
+|   |-- Integration_vertical-07087576.ipynb
+|   |-- Integration_vertical-7576\ copy.ipynb
+|   |-- Integration_vertical-7576.ipynb
+|   |-- Integration_vertical-merfish.ipynb
+|   |-- Spatial_clustering-151673-gene.ipynb
+|   `-- Spatial_clustering-151673-img.ipynb
+|-- learner.pth
+|-- model.pt
+|-- requirements.txt
+|-- staig
+|   |-- __init__.py
+|   |-- adata_processing.py
+|   |-- batchKL.R
+|   |-- calLISI.R
+|   |-- metrics.py
+|   |-- net.py
+|   |-- staig.py
+|   `-- utils.py
+|-- train_img_config.yaml
+`-- train_no_img_config.yaml
 ```
 
 ### Extract image features by BYOL
