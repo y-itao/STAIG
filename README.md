@@ -106,71 +106,55 @@ Before running, please download the compressed folder of the `Dataset` from [Goo
 
 We assume the root path for the dataset is `./Dataset`, and the path for the DLPFC dataset's 151673 slice is `./Dataset/DLPFC/151673`.
 
-1. **Image Cropping Based on Coordinates**
-   The cropped images are stored in `./Dataset/DLPFC/151673/clip_image`.
-   Input variables: `dataset` is the dataset name, `slide` is the slice name, `patch_size` is the size of the cropped image (default is 512), `label` indicates whether the image includes class labels.
-   ```bash
-   python image_step1_clip.py --dataset DLPFC --slide 151673 --patch_size 512 --label True
-   ```
-2. **Further Processing with Gaussian Blur and Bandpass Filters**
-   Processed images are stored in `./Dataset/DLPFC/151673/clip_image_filter.`
-   Input variables: `dataset` is the dataset name, `slide` is the slice name, `lower` and `upper` are the lower and upper frequency limits for the bandpass filter, typically around half the value of `patch_size` (default is `245-275`).
-   ```bash
-   python image_step2_filter.py --dataset DLPFC --slide 151673 --lower 245 --upper 275
-   ```
-3. **Feature Extraction using BYOL**
-   Extracted image features are stored in `./Dataset/DLPFC/151673/embeddings.npy`.
-   Input variables: `dataset` is the dataset name, `slide` is the slice name, `epoch_num` is the number of iterations.
-   ```bash
-   python image_step3_byol.py --dataset DLPFC --slide 151673 --epoch_num 200
-   ```
+The example of extract image features is under `./examples`.
 
-4. **Displaying Image Features with KNN**
-   Results are outputted to `./figures.`
-   Input variables: `dataset` is the dataset name, `slide` is the slice name, `n_clusters` is the number of clusters (default is 20), `label` indicates whether the image includes class labels.
-   ```bash
-   python image_step4_show.py --dataset DLPFC --slide 151673 --n_clusters 20 --label True
-   ```
+1.	`Image_feature_extraction-151507`: The process and display of image feature extraction in DLPFC for #151507, corresponding to Figure 3a in the paper.
+2.	`Image_feature_extraction-151673`: The process and display of image feature extraction in DLPFC for #151673, corresponding to Figure 3b in the paper.
+3.	`Image_feature_extraction-BreastCancer`: The process and display of image feature extraction for human breast cancer, corresponding to Figure 3c in the paper.
+
+Change the work_dir to `./` when loading packages. Then, clik and run.
+
+
+We assume the root path for the dataset is `./Dataset`, and the path for the DLPFC dataset's 151673 slice is `./Dataset/DLPFC/151673`.
+
+
 ### Spatial Domain Identification on the 10x Visium Platform (Case #151673)
 
-The primary script for execution is `train_with_image.py`, with specific hyperparameters controllable through an external `train_img_config.yaml`.
-`train_with_image.py` accepts four arguments: `--dataset` for the dataset name (default is DLPFC), `--slide` for the slide name (default is 151673), `--label` indicating if class labels exist (default is true), and `--config` for other hyperparameters in the yaml configuration file, by default `train_img_config.yaml`.
-```bash
-python example_train_with_image.py --dataset DLPFC  --slide 151673  --label True --config train_img_config.yaml
-```
-The clustering result is displayed in `./figures`.
-The trained model parameters are available in `./example_model/151673/model.pt`.
+The example is under `./examples`. Change the work_dir to `./` when loading packages. Then, clik and run.
 
-### Spatial Domain Identification on Other Platforms
 
-The main script for execution is `train_without_image.py`, with specific hyperparameters controllable through an external `train_no_img_config.yaml`.
 
-The dataset is pre-converted into `h5ad` format and pre-processed.
+1. **Gene similarity mode**: `Spatial_clustering-151673-gene`: Displays the adaptive clustering results based on gene similarity for #151673, with an ARI of 0.65.
+2. **Image mode**: `Spatial_clustering-151673-img`: Displays the clustering results based on image similarity for #151673, with an ARI of 0.68.
 
-`train_without_image.py` accepts four arguments: `--dataset` for the dataset name, `--slide` for the slide name, and `--config` for other hyperparameters in the yaml configuration file, by default `train_no_img_config.yaml`.
-
-```bash
-python example_train_without_image.py 
-```
-The clustering result is displayed in `./figures`.
 
 ### Alignment-Free Integration (10x Visium)
 
+The example is under `./examples`. Change the work_dir to `./` when loading packages. Then, clik and run.
+
 1. **vertical integration**
 
-`example_integration_vertical.py` takes four parameters: `--dataset` for the dataset name (default is DLPFC), `--slide` for the slide name (default is `integration_vertical`), `--label` indicating if class labels exist (default is true), `--config` for other hyperparameters in the yaml configuration file, default is `train_img_config.yaml`, and `--filelist` for the names of slides to integrate, separated by spaces. The result is shown in `./figures`.
+`Integration_vertical-07087576`: Displays the integration based on slices from different sources in the DLPFC, for Figure 5c in the paper.
 
-```bash
-python example_integration_vertical.py  --filelist 151675 151676
-```
+
+`Integration_vertical-7576`: Displays the integration of adjacent DLPFC slices #151675 and #151676, with an ARI of 0.64, corresponding to Figure 5a in the paper.
+
+
 2. **horizontal integration （mouse brain）**
-```bash
-python example_integration_horizontal.py  --filelist Mouse_Brain_Anterior Mouse_Brain_Posterior
-```
-3. **partial integration**
-```bash
-python example_integration_partial.py  --filelist WS_PLA_S9101764 WS_PLA_S9101765 WS_PLA_S9101767
-```
+
+`Integration_horizontal`: Displays the results of horizontal integration, corresponding to Figure 5b in the paper.
+
+### Alignment-Free Integration (MERFISH)
+
+`Integration_vertical-merfish`: Displays the integration results from the MERFISH platform for two mice on the same site, corresponding to Figure 5d in the paper.
+
+### Alignment-Free Integration (Cross platform)
+
+
+`Integration_cross-mini`: Displays the cross-platform integration of Stereo-seq and Slide_seqV2. Due to platform GPU memory limitations, this is a sampled version with 7000 random points from each dataset. 
+
+
+`Integration_cross`: Displays the cross-platform integration of Stereo-seq and Slide_seqV2. 
 
 ## Compared tools
 
