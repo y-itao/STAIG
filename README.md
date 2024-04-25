@@ -94,7 +94,6 @@ Before running, please download the compressed folder of the `Dataset` from [Goo
 |   |-- Integration_cross-mini.ipynb
 |   |-- Integration_horizontal.ipynb
 |   |-- Integration_vertical-07087576.ipynb
-|   |-- Integration_vertical-7576\ copy.ipynb
 |   |-- Integration_vertical-7576.ipynb
 |   |-- Integration_vertical-merfish.ipynb
 |   |-- Spatial_clustering-151673-gene.ipynb
