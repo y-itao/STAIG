@@ -239,15 +239,15 @@ def dropout_adj(
         mask = row <= col
         row, col, edge_attr = row[mask], col[mask], edge_attr[mask]
 
-    # 获取删除概率的最大值和最小值
+
     min_p_tensor = torch.tensor(min_p, device=torch.device('cpu'))
     max_p_tensor = torch.tensor(max_p, device=torch.device('cpu'))
 
-    # 缩放 edge_attr 以使其位于给定的删除概率区间内
+
     edge_attr_scaled = min_p_tensor + (max_p_tensor - min_p_tensor) * edge_attr
     edge_attr_scaled_cpu = edge_attr_scaled.to('cpu')
 
-    # 根据缩放后的 edge_attr（概率）值决定是否删除邻边
+
     mask = torch.rand(edge_attr_scaled.size(0), device=torch.device('cpu')) >= edge_attr_scaled_cpu
 
     row, col, edge_attr = filter_adj(row, col, edge_attr, mask)
@@ -336,3 +336,25 @@ def random_dropout_adj(
         edge_index = torch.stack([row, col], dim=0)
 
     return edge_index, edge_attr
+
+class Discriminator(nn.Module):
+    def __init__(self, input_dim):
+        super(Discriminator, self).__init__()
+        self.dis_layers = 1  
+        self.dis_hid_dim = 64  
+        self.dis_dropout = 0.2  
+        self.dis_input_dropout = 0.1 
+
+        layers = [nn.Dropout(self.dis_input_dropout)]
+        for i in range(self.dis_layers + 1):
+            input_dim = input_dim if i == 0 else self.dis_hid_dim
+            output_dim = 1 if i == self.dis_layers else self.dis_hid_dim
+            layers.append(nn.Linear(input_dim, output_dim))
+            if i < self.dis_layers:
+                layers.append(nn.ReLU())
+                layers.append(nn.Dropout(self.dis_dropout))
+
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.layers(x).view(-1)

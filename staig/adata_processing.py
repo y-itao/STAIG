@@ -6,12 +6,18 @@ from scipy.sparse.csr import csr_matrix
 import pandas as pd
 import os
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from scipy.spatial.distance import cdist
 from scipy.special import softmax
 from anndata import AnnData
 from scipy.linalg import block_diag
+from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.cluster import KMeans
 
+def generate_pseudo_labels(img_emb, n_clusters):
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(img_emb)
+    pseudo_labels = kmeans.labels_
+    return pseudo_labels
 
 class LoadSingle10xAdata:
     def __init__(self, path: str, n_top_genes: int = 3000, n_neighbors: int = 3, image_emb: bool = False, label: bool = True, filter_na: bool = True):
@@ -22,11 +28,13 @@ class LoadSingle10xAdata:
         self.image_emb = image_emb
         self.label = label
         self.filter_na = filter_na
+        self.kernel = 'euclidean'
 
 
     def load_data(self):
         self.adata = sc.read_visium(self.path, count_file='filtered_feature_bc_matrix.h5', load_images=True)
         self.adata.var_names_make_unique()
+
 
     def preprocess(self):
         sc.pp.highly_variable_genes(self.adata, flavor="seurat_v3", n_top_genes=self.n_top_genes)
@@ -65,7 +73,7 @@ class LoadSingle10xAdata:
         df_meta_layer = df_meta[1]
 
         self.adata.obs['ground_truth'] = df_meta_layer.values
-        # filter out NA nodes
+
         if self.filter_na:
             self.adata = self.adata[~pd.isnull(self.adata.obs['ground_truth'])]
 
@@ -74,31 +82,106 @@ class LoadSingle10xAdata:
         data = data.reshape(data.shape[0], -1)
         scaler = StandardScaler()
         embedding = scaler.fit_transform(data)
-        pca = PCA(n_components=128, random_state=42)
+        pca = PCA(n_components=16, random_state=42)
         embedding = pca.fit_transform(embedding)
         self.adata.obsm['img_emb'] = embedding
+        pca_g = PCA(n_components=64, random_state=42)
+        self.adata.obsm['feat_pca'] = pca_g.fit_transform(self.adata.obsm['feat'])
+        self.adata.obsm['con_feat'] = np.concatenate([self.adata.obsm['feat_pca'], self.adata.obsm['img_emb']], axis=1)
+        con_feat = self.adata.obsm['con_feat']
+
+        scaler = StandardScaler()
+
+        con_feat_standardized = scaler.fit_transform(con_feat)
+
+        self.adata.obsm['con_feat'] = con_feat_standardized
+
 
     def calculate_edge_weights(self):
-        # 获取现有的邻接矩阵和节点 embedding
+
         graph_neigh = self.adata.obsm['graph_neigh']
         node_emb = self.adata.obsm['img_emb']
+        if self.kernel == 'euclidean':
 
-        # 计算所有节点之间的欧氏距离
-        euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
+            euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
 
-        # 计算邻边权重矩阵
+   
+            edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
+
+
+            edge_probabilities = np.zeros_like(edge_weights)
+            for i in range(edge_weights.shape[0]):
+
+                non_zero_indices = edge_weights[i] != 0
+                non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
+
+            self.adata.obsm['edge_probabilities'] = edge_probabilities
+
+        if self.kernel=='rbf':
+
+            gamma = 0.01 
+            similarity_matrix = rbf_kernel(node_emb, gamma=gamma)
+            
+
+            edge_weights = np.where(graph_neigh == 1, 1 - similarity_matrix, 0)
+            
+
+            edge_probabilities = np.zeros_like(edge_weights)
+            for i in range(edge_weights.shape[0]):
+                non_zero_indices = edge_weights[i] != 0
+                non_zero_weights = edge_weights[i][non_zero_indices]
+                softmax_weights = softmax(non_zero_weights)  
+                edge_probabilities[i][non_zero_indices] = softmax_weights
+
+
+            self.adata.obsm['edge_probabilities'] = edge_probabilities
+
+        if self.kernel=='cosine':
+
+            euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+
+
+            edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
+
+
+            edge_probabilities = np.zeros_like(edge_weights)
+            for i in range(edge_weights.shape[0]):
+                non_zero_indices = edge_weights[i] != 0
+                non_zero_weights = edge_weights[i][non_zero_indices]
+                softmax_weights = softmax(non_zero_weights)  
+                edge_probabilities[i][non_zero_indices] = softmax_weights
+
+            self.adata.obsm['edge_probabilities'] = edge_probabilities
+
+    def calculate_edge_weights_gene(self):
+
+        graph_neigh = self.adata.obsm['graph_neigh']
+        node_emb = self.adata.obsm['feat']
+        scaler = StandardScaler()
+        embedding = scaler.fit_transform(node_emb)
+        pca = PCA(n_components=64, random_state=42)
+        embedding = pca.fit_transform(embedding)
+        node_emb = embedding
+
+        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+
+
         edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
 
-        # 将邻边权重转换为概率（用 softmax 函数）
+
         edge_probabilities = np.zeros_like(edge_weights)
         for i in range(edge_weights.shape[0]):
-            # edge_probabilities[i] = softmax(-edge_weights[i]) # 注意：这里用负号，使得距离近的节点具有较低的概率被删除。
+
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  # 使用对数函数进行缩放，+1是为了避免对零取对数
+            non_zero_weights = edge_weights[i][non_zero_indices]  
             softmax_weights = softmax(non_zero_weights)
             edge_probabilities[i][non_zero_indices] = softmax_weights
-        # 将概率矩阵存储到 adata
+
         self.adata.obsm['edge_probabilities'] = edge_probabilities
+
+
 
     def run(self):
         self.load_data()
@@ -111,22 +194,28 @@ class LoadSingle10xAdata:
         if self.image_emb:
             self.load_image_emb()
             self.calculate_edge_weights()
+        else:
+            self.calculate_edge_weights_gene()
+
+        print('adata load done')
 
         return self.adata
 
 class LoadSingleAdata:
-    def __init__(self, path: str,  n_neighbors: int = 3, image_emb: bool = False, label: bool = False, filter_na: bool = True):
+    def __init__(self, path: str,  n_neighbors: int = 3, image_emb: bool = False, label: bool = False, filter_na: bool = True,n_top_genes: int = 161):
         self.path = path
         self.n_neighbors = n_neighbors
         self.adata = None
         self.image_emb = image_emb
         self.label = label
         self.filter_na = filter_na
+        self.n_top_genes = n_top_genes
 
 
     def load_data(self):
         self.adata = sc.read_h5ad(self.path)   
         self.adata.var_names_make_unique()
+
 
 
     def construct_interaction(self):
@@ -173,47 +262,232 @@ class LoadSingleAdata:
         embedding = pca.fit_transform(embedding)
         self.adata.obsm['img_emb'] = embedding
 
+    def preprocess(self):
+        sc.pp.highly_variable_genes(self.adata, flavor="seurat_v3", n_top_genes=self.n_top_genes)
+
+
     def calculate_edge_weights(self):
-        # 获取现有的邻接矩阵和节点 embedding
+
         graph_neigh = self.adata.obsm['graph_neigh']
         node_emb = self.adata.obsm['img_emb']
 
-        # 计算所有节点之间的欧氏距离
+
         euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
 
-        # 计算邻边权重矩阵
+
         edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
 
-        # 将邻边权重转换为概率（用 softmax 函数）
+
         edge_probabilities = np.zeros_like(edge_weights)
         for i in range(edge_weights.shape[0]):
-            # edge_probabilities[i] = softmax(-edge_weights[i]) # 注意：这里用负号，使得距离近的节点具有较低的概率被删除。
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  # 使用对数函数进行缩放，+1是为了避免对零取对数
+            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
             softmax_weights = softmax(non_zero_weights)
             edge_probabilities[i][non_zero_indices] = softmax_weights
-        # 将概率矩阵存储到 adata
+
+        self.adata.obsm['edge_probabilities'] = edge_probabilities
+
+    def calculate_edge_weights_gene(self):
+
+        graph_neigh = self.adata.obsm['graph_neigh']
+        node_emb = self.adata.obsm['feat']
+        scaler = StandardScaler()
+        embedding = scaler.fit_transform(node_emb)
+        pca = PCA(n_components=64, random_state=42)
+        embedding = pca.fit_transform(embedding)
+        node_emb = embedding
+
+        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+
+
+        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
+
+
+        edge_probabilities = np.zeros_like(edge_weights)
+        for i in range(edge_weights.shape[0]):
+
+            non_zero_indices = edge_weights[i] != 0
+            non_zero_weights = edge_weights[i][non_zero_indices]  
+            softmax_weights = softmax(non_zero_weights)
+            edge_probabilities[i][non_zero_indices] = softmax_weights
+
         self.adata.obsm['edge_probabilities'] = edge_probabilities
 
     def run(self):
         self.load_data()
         if self.label:
             self.load_label()
-        # self.preprocess()
+        self.preprocess()
         self.construct_interaction()
         self.generate_gene_expr()
-
+        
         if self.image_emb:
             self.load_image_emb()
             self.calculate_edge_weights()
+        else:
+            self.calculate_edge_weights_gene()
 
         return self.adata
     
+
+class LoadBatchAdata_cross:
+    def __init__(self, file_list: list, n_top_genes: int = 3000, n_neighbors: int = 5,
+                 image_emb: bool = False, label: bool = True, filter_na: bool = True, do_log:bool=True):
+        self.file_list = file_list  # slice name list
+        self.n_top_genes = n_top_genes
+        self.n_neighbors = n_neighbors
+        self.adata_list = []
+        self.adata_len = []
+        self.merged_adata = None
+        self.image_emb = image_emb
+        self.label = label
+        self.filter_na = filter_na
+        self.do_log = do_log
+
+    def construct_interaction(self, input_adata):
+        position = input_adata.obsm['spatial']
+        distance_matrix = ot.dist(position, position, metric='euclidean')
+        n_spot = distance_matrix.shape[0]
+        interaction = np.zeros([n_spot, n_spot])
+        for i in range(n_spot):
+            vec = distance_matrix[i, :]
+            distance = vec.argsort()
+            for t in range(1, self.n_neighbors + 1):
+                y = distance[t]
+                interaction[i, y] = 1
+
+        adj = interaction + interaction.T
+        adj = np.where(adj > 1, 1, adj)
+        input_adata.obsm['local_graph'] = adj
+        return input_adata
+
+    def load_data(self):
+        for i in self.file_list:
+
+            print(i)
+            sc.pp.highly_variable_genes(i, flavor="seurat_v3", n_top_genes=5000)
+            adata = self.construct_interaction(input_adata=i)
+
+            self.adata_list.append(adata)
+            self.adata_len.append(adata.X.shape[0])
+
+        print('load all slices done')
+
+        return self.adata_list
+
+    def concatenate_slices(self):
+
+        highly_variable_genes_set = set(self.adata_list[0].var['highly_variable'][self.adata_list[0].var['highly_variable']].index)
+
+
+        for adata in self.adata_list[1:]:
+
+            current_set = set(adata.var['highly_variable'][adata.var['highly_variable']].index)
+            highly_variable_genes_set = highly_variable_genes_set.intersection(current_set)
+
+
+        feat_standardized_list = []
+
+        for adata in self.adata_list:
+            adata_Vars = adata[:, adata.var.index.isin(highly_variable_genes_set)]
+            if isinstance(adata_Vars.X, csc_matrix) or isinstance(adata_Vars.X, csr_matrix):
+                feat = adata_Vars.X.toarray()[:]
+            else:
+                feat = adata_Vars.X[:]
+            
+
+            scaler = StandardScaler()
+
+            feat_standardized = scaler.fit_transform(feat)
+            
+
+            feat_standardized_list.append(feat_standardized)
+
+
+        adata = AnnData.concatenate(*self.adata_list, join='outer')
+
+
+        merged_feat_standardized = np.concatenate(feat_standardized_list, axis=0)
+
+
+        adata.obsm['feat'] = merged_feat_standardized
+
+        self.merged_adata = adata
+        print(self.merged_adata.obsm['feat'].shape)
+        print('merge done')
+        return self.merged_adata
+
+    def construct_whole_graph(self):
+        matrix_list = [i.obsm['local_graph'] for i in self.adata_list]
+        adjacency = block_diag(*matrix_list)
+        self.merged_adata.obsm['graph_neigh'] = adjacency
+        return self.merged_adata
+
+    def calculate_edge_weights(self):
+
+        graph_neigh = self.merged_adata.obsm['graph_neigh']
+        node_emb = self.merged_adata.obsm['img_emb']
+
+
+        euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
+
+
+        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
+
+
+        edge_probabilities = np.zeros_like(edge_weights)
+        for i in range(edge_weights.shape[0]):
+
+            non_zero_indices = edge_weights[i] != 0
+            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
+            softmax_weights = softmax(non_zero_weights)
+            edge_probabilities[i][non_zero_indices] = softmax_weights
+
+        self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
+
+    def calculate_edge_weights_gene(self):
+
+        graph_neigh = self.merged_adata.obsm['graph_neigh']
+        node_emb = self.merged_adata.obsm['feat']
+        scaler = StandardScaler()
+        embedding = scaler.fit_transform(node_emb)
+        pca = PCA(n_components=64, random_state=42)
+        embedding = pca.fit_transform(embedding)
+        node_emb = embedding
+
+        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+
+
+        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
+
+
+        edge_probabilities = np.zeros_like(edge_weights)
+        for i in range(edge_weights.shape[0]):
+
+            non_zero_indices = edge_weights[i] != 0
+            non_zero_weights = edge_weights[i][non_zero_indices]  
+            softmax_weights = softmax(non_zero_weights)
+            edge_probabilities[i][non_zero_indices] = softmax_weights
+
+        self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
+
+    def run(self):
+        self.load_data()
+        self.concatenate_slices()
+        self.construct_whole_graph()
+        if self.image_emb:
+            self.calculate_edge_weights()
+        else:
+            self.calculate_edge_weights_gene()
+        return self.merged_adata
+
+
+
 class LoadBatch10xAdata:
     def __init__(self, dataset_path: str, file_list: list, n_top_genes: int = 3000, n_neighbors: int = 5,
                  image_emb: bool = False, label: bool = True, filter_na: bool = True, do_log:bool=True):
-        self.dataset_path = dataset_path  # until dataset path (like ./Dataset/DLPFC)
-        self.file_list = file_list  # slice name list
+        self.dataset_path = dataset_path  
+        self.file_list = file_list  
         self.n_top_genes = n_top_genes
         self.n_neighbors = n_neighbors
         self.adata_list = []
@@ -247,6 +521,9 @@ class LoadBatch10xAdata:
             load_path = os.path.join(self.dataset_path, i)
             adata = sc.read_visium(load_path, count_file='filtered_feature_bc_matrix.h5', load_images=True)
             adata.var_names_make_unique()
+            sc.pp.highly_variable_genes(adata, flavor="seurat_v3", n_top_genes=5000)
+            sc.pp.normalize_total(adata, target_sum=1e4)
+            sc.pp.log1p(adata)
             if self.label:
                 df_meta = pd.read_csv(os.path.join(load_path, 'truth.txt'), sep='\t', header=None)
                 df_meta_layer = df_meta[1]
@@ -274,21 +551,25 @@ class LoadBatch10xAdata:
         return self.adata_list
 
     def concatenate_slices(self):
-        adata = AnnData.concatenate(*self.adata_list, join='outer')
-        if self.do_log:
-            sc.pp.highly_variable_genes(adata, flavor="seurat_v3", n_top_genes=self.n_top_genes)
-            sc.pp.normalize_total(adata, target_sum=1e4)
-            sc.pp.log1p(adata)
-            sc.pp.scale(adata, zero_center=False, max_value=10)
-            print('log transform done')
 
-        adata_Vars = adata[:, adata.var['highly_variable']]
+        highly_variable_genes_set = set(self.adata_list[0].var['highly_variable'][self.adata_list[0].var['highly_variable']].index)
+
+
+        for adata in self.adata_list[1:]:
+
+            current_set = set(adata.var['highly_variable'][adata.var['highly_variable']].index)
+            highly_variable_genes_set = highly_variable_genes_set.intersection(current_set)
+
+        adata = AnnData.concatenate(*self.adata_list, join='outer')
+
+        adata_Vars = adata[:, adata.var.index.isin(highly_variable_genes_set)]
         if isinstance(adata_Vars.X, csc_matrix) or isinstance(adata_Vars.X, csr_matrix):
             feat = adata_Vars.X.toarray()[:, ]
         else:
             feat = adata_Vars.X[:, ]
 
         adata.obsm['feat'] = feat
+
         self.merged_adata = adata
         print('merge done')
         return self.merged_adata
@@ -300,26 +581,58 @@ class LoadBatch10xAdata:
         return self.merged_adata
 
     def calculate_edge_weights(self):
-        # 获取现有的邻接矩阵和节点 embedding
+        print('now calculate edge weights')
+
         graph_neigh = self.merged_adata.obsm['graph_neigh']
         node_emb = self.merged_adata.obsm['img_emb']
 
-        # 计算所有节点之间的欧氏距离
+  
         euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
 
-        # 计算邻边权重矩阵
+   
         edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
 
-        # 将邻边权重转换为概率（用 softmax 函数）
+  
         edge_probabilities = np.zeros_like(edge_weights)
         for i in range(edge_weights.shape[0]):
-            # edge_probabilities[i] = softmax(-edge_weights[i]) # 注意：这里用负号，使得距离近的节点具有较低的概率被删除。
+         
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  # 使用对数函数进行缩放，+1是为了避免对零取对数
+            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
             softmax_weights = softmax(non_zero_weights)
             edge_probabilities[i][non_zero_indices] = softmax_weights
-        # 将概率矩阵存储到 adata
+
         self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
+        pseudo_labels = generate_pseudo_labels(node_emb, 300)
+        self.merged_adata.obs['pseudo_labels'] = pd.Categorical(pseudo_labels)
+        print('calculate edge weights done')
+
+    def calculate_edge_weights_gene(self):
+        print('now calculate edge weights')
+
+        graph_neigh = self.merged_adata.obsm['graph_neigh']
+        node_emb = self.merged_adata.obsm['feat']
+        scaler = StandardScaler()
+        embedding = scaler.fit_transform(node_emb)
+        pca = PCA(n_components=64, random_state=42)
+        embedding = pca.fit_transform(embedding)
+        node_emb = embedding
+
+        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+
+
+        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
+
+
+        edge_probabilities = np.zeros_like(edge_weights)
+        for i in range(edge_weights.shape[0]):
+
+            non_zero_indices = edge_weights[i] != 0
+            non_zero_weights = edge_weights[i][non_zero_indices]  
+            softmax_weights = softmax(non_zero_weights)
+            edge_probabilities[i][non_zero_indices] = softmax_weights
+
+        self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
+        print('calculate edge weights done')
 
     def run(self):
         self.load_data()
@@ -327,13 +640,16 @@ class LoadBatch10xAdata:
         self.construct_whole_graph()
         if self.image_emb:
             self.calculate_edge_weights()
+        else:
+            self.calculate_edge_weights_gene()
+        print('merge adata load done')
         return self.merged_adata
-    
+
 class LoadBatchAdata:
     def __init__(self, dataset_path: str, file_list: list, n_top_genes: int = 3000, n_neighbors: int = 5,
                  image_emb: bool = False, label: bool = True, filter_na: bool = True, do_log:bool=True):
-        self.dataset_path = dataset_path  # until dataset path (like ./Dataset/DLPFC)
-        self.file_list = file_list  # slice name list
+        self.dataset_path = dataset_path  
+        self.file_list = file_list  
         self.n_top_genes = n_top_genes
         self.n_neighbors = n_neighbors
         self.adata_list = []
@@ -363,38 +679,40 @@ class LoadBatchAdata:
 
     def load_data(self):
         for i in self.file_list:
-            print('now load: ' + i)
-            load_path = os.path.join(self.dataset_path, i)
-            adata = sc.read_h5ad(load_path)
-            adata.var_names_make_unique()
 
-            adata = self.construct_interaction(input_adata=adata)
-            adata.var['new_column'] = 1
-            print(adata)
-            print(i + ' build local graph done')
+            print(i)
+            sc.pp.highly_variable_genes(i, flavor="seurat_v3", n_top_genes=234)
+            sc.pp.normalize_total(i, target_sum=1e4)
+            sc.pp.log1p(i)
+            adata = self.construct_interaction(input_adata=i)
+            # print(i + ' build local graph done')
             self.adata_list.append(adata)
             self.adata_len.append(adata.X.shape[0])
-            print(i + ' added to list')
+            # print(i + ' added to list')
         print('load all slices done')
 
         return self.adata_list
 
     def concatenate_slices(self):
-        adata = AnnData.concatenate(*self.adata_list, join='outer')
-        if self.do_log:
-            sc.pp.highly_variable_genes(adata, flavor="seurat_v3", n_top_genes=self.n_top_genes)
-            sc.pp.normalize_total(adata, target_sum=1e4)
-            sc.pp.log1p(adata)
-            sc.pp.scale(adata, zero_center=False, max_value=10)
-            print('log transform done')
 
-        adata_Vars = adata[:, adata.var['highly_variable']]
+        highly_variable_genes_set = set(self.adata_list[0].var['highly_variable'][self.adata_list[0].var['highly_variable']].index)
+
+
+        for adata in self.adata_list[1:]:
+
+            current_set = set(adata.var['highly_variable'][adata.var['highly_variable']].index)
+            highly_variable_genes_set = highly_variable_genes_set.intersection(current_set)
+
+        adata = AnnData.concatenate(*self.adata_list, join='outer')
+
+        adata_Vars = adata[:, adata.var.index.isin(highly_variable_genes_set)]
         if isinstance(adata_Vars.X, csc_matrix) or isinstance(adata_Vars.X, csr_matrix):
             feat = adata_Vars.X.toarray()[:, ]
         else:
             feat = adata_Vars.X[:, ]
 
         adata.obsm['feat'] = feat
+
         self.merged_adata = adata
         print('merge done')
         return self.merged_adata
@@ -406,25 +724,51 @@ class LoadBatchAdata:
         return self.merged_adata
 
     def calculate_edge_weights(self):
-        # 获取现有的邻接矩阵和节点 embedding
+
         graph_neigh = self.merged_adata.obsm['graph_neigh']
         node_emb = self.merged_adata.obsm['img_emb']
 
-        # 计算所有节点之间的欧氏距离
+
         euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
 
-        # 计算邻边权重矩阵
+
         edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
 
-        # 将邻边权重转换为概率（用 softmax 函数）
+ 
         edge_probabilities = np.zeros_like(edge_weights)
         for i in range(edge_weights.shape[0]):
-            # edge_probabilities[i] = softmax(-edge_weights[i]) # 注意：这里用负号，使得距离近的节点具有较低的概率被删除。
+   
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  # 使用对数函数进行缩放，+1是为了避免对零取对数
+            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
             softmax_weights = softmax(non_zero_weights)
             edge_probabilities[i][non_zero_indices] = softmax_weights
-        # 将概率矩阵存储到 adata
+
+        self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
+
+    def calculate_edge_weights_gene(self):
+
+        graph_neigh = self.merged_adata.obsm['graph_neigh']
+        node_emb = self.merged_adata.obsm['feat']
+        scaler = StandardScaler()
+        embedding = scaler.fit_transform(node_emb)
+        pca = PCA(n_components=64, random_state=42)
+        embedding = pca.fit_transform(embedding)
+        node_emb = embedding
+
+        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+
+  
+        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
+
+
+        edge_probabilities = np.zeros_like(edge_weights)
+        for i in range(edge_weights.shape[0]):
+
+            non_zero_indices = edge_weights[i] != 0
+            non_zero_weights = edge_weights[i][non_zero_indices]  
+            softmax_weights = softmax(non_zero_weights)
+            edge_probabilities[i][non_zero_indices] = softmax_weights
+
         self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
 
     def run(self):
@@ -433,5 +777,6 @@ class LoadBatchAdata:
         self.construct_whole_graph()
         if self.image_emb:
             self.calculate_edge_weights()
+        else:
+            self.calculate_edge_weights_gene()
         return self.merged_adata
-
