@@ -98,8 +98,6 @@ Before running, please download the compressed folder of the `Dataset` from [Goo
 |   |-- Integration_vertical-merfish.ipynb
 |   |-- Spatial_clustering-151673-gene.ipynb
 |   `-- Spatial_clustering-151673-img.ipynb
-|-- learner.pth
-|-- model.pt
 |-- requirements.txt
 |-- staig
 |   |-- __init__.py
