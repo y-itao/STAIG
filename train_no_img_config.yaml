@@ -17,3 +17,181 @@ Mouse_Olfactory:
   num_clusters: 7
   num_gene: 3000
   num_neigh: 5
+
+merfish:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 2
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.01
+  drop_feature_rate_2: 0.02
+  tau: 1
+  tau_decay: 0.00
+  num_epochs: 400
+  weight_decay: 0.00001
+  num_clusters: 10
+  num_gene: 161
+  num_neigh: 8
+
+merfish1:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.01
+  drop_feature_rate_2: 0.02
+  tau: 1
+  tau_decay: 0.00
+  num_epochs: 400
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 3000
+  num_neigh: 5
+
+Mouse_Olfactory-1:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 2
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.01
+  drop_feature_rate_2: 0.02
+  tau: 6
+  tau_decay: 0.00
+  num_epochs: 50
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 3000
+  num_neigh: 5
+
+merfish2:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.01
+  drop_feature_rate_2: 0.02
+  tau: 1
+  tau_decay: 0.00
+  num_epochs: 400
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 234
+  num_neigh: 5
+
+
+starmap:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 2
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.01
+  drop_feature_rate_2: 0.02
+  tau: 2
+  tau_decay: 0.00
+  num_epochs: 500
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 1020
+  num_neigh: 5
+
+v2:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 2
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.01
+  drop_feature_rate_2: 0.02
+  tau: 22
+  tau_decay: 0.00
+  num_epochs: 310
+  weight_decay: 0.00001
+  num_clusters: 11
+  num_gene: 3000
+  num_neigh: 5
+
+151673:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_feature_rate_1: 0.2
+  drop_feature_rate_2: 0.2
+  tau: 34.0
+  num_epochs: 340
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 3000
+  num_neigh: 5
+
+vertical_merfish:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.1
+  drop_feature_rate_2: 0.2
+  tau: 1
+  tau_decay: 0.08
+  num_epochs: 350
+  weight_decay: 0.00001
+  num_clusters: 8
+  num_gene: 234
+  num_neigh: 5
+
+tset:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 2
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.01
+  drop_feature_rate_2: 0.02
+  tau: 2
+  tau_decay: 0.00
+  num_epochs: 500
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 1020
+  num_neigh: 6
