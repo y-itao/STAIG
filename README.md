@@ -25,7 +25,7 @@ This section details the steps to set up the project environment using Anaconda.
 
 - R with Mclust, nabor package
 - Python 3.10.11
-- pytorch==1.13.1
+- pytorch==2.2.2
 
 ### Cloning the Repository and Preparing the Environment
 
@@ -48,10 +48,8 @@ Actual installation time depends on network conditions and takes about 15 minute
    conda activate staig_env
    
    ## step1 Installing PyTorch 
-   # For GPU (CUDA 11.7)
-   conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.7 -c pytorch -c nvidia
-   # For CPU
-   conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 -c pytorch
+   # For GPU (CUDA 12.1)
+   conda install pytorch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 pytorch-cuda=12.1 -c pytorch -c nvidia
 
    ## step2 Installing Pyg
    conda install pyg -c pyg
