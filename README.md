@@ -85,16 +85,8 @@ Before running, please download the compressed folder of the `Dataset` from [Goo
 |       |-- Mouse_Brain_Anterior
 |       `-- Mouse_Brain_Posterior
 |-- example
-|   |-- Image_feature_extraction-151507.ipynb
-|   |-- Image_feature_extraction-151673.ipynb
-|   |-- Image_feature_extraction-BreastCancer.ipynb
-|   |-- Integration_cross-mini.ipynb
-|   |-- Integration_horizontal.ipynb
-|   |-- Integration_vertical-07087576.ipynb
-|   |-- Integration_vertical-7576.ipynb
-|   |-- Integration_vertical-merfish.ipynb
-|   |-- Spatial_clustering-151673-gene.ipynb
-|   `-- Spatial_clustering-151673-img.ipynb
+|   |-- SOME EXAMPLES.ipynb
+
 |-- requirements.txt
 |-- staig
 |   |-- __init__.py
@@ -115,9 +107,9 @@ We assume the root path for the dataset is `./Dataset`, and the path for the DLP
 
 The example of extract image features is under `./examples`.
 
-1.	`Image_feature_extraction-151507`: The process and display of image feature extraction in DLPFC for #151507, corresponding to Figure 3a in the paper.
-2.	`Image_feature_extraction-151673`: The process and display of image feature extraction in DLPFC for #151673, corresponding to Figure 3b in the paper.
-3.	`Image_feature_extraction-BreastCancer`: The process and display of image feature extraction for human breast cancer, corresponding to Figure 3c in the paper.
+
+2.	`Image_feature_extraction-151673`: The process and display of image feature extraction in DLPFC for #151673.
+
 
 Change the work_dir to `./` when loading packages. Then, clik and run.
 
@@ -131,8 +123,8 @@ The example is under `./examples`. Change the work_dir to `./` when loading pack
 
 
 
-1. **Gene similarity mode**: `Spatial_clustering-151673-gene`: Displays the adaptive clustering results based on gene similarity for #151673, with an ARI of 0.65.
-2. **Image mode**: `Spatial_clustering-151673-img`: Displays the clustering results based on image similarity for #151673, with an ARI of 0.68.
+
+1. **Image mode**: `Spatial_clustering-151673-img`: Displays the clustering results based on image similarity for #151673, with an ARI of 0.68.
 
 
 ### Alignment-Free Integration (10x Visium)
