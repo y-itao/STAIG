@@ -61,12 +61,8 @@ def clustering(adata, n_clusters=7, radius=50, method='mclust', start=0.1, end=3
 
     """
 
-    scaler = StandardScaler()
-    embedding = scaler.fit_transform(adata.obsm['emb'].copy())
-    adata.obsm['norm_emb'] = embedding
-    
     if method == 'mclust':
-       adata = mclust_R(adata, used_obsm='norm_emb', num_cluster=n_clusters)
+       adata = mclust_R(adata, used_obsm='emb', num_cluster=n_clusters)
        adata.obs['domain'] = adata.obs['mclust']
     elif method == 'leiden':
        res = search_res(radius,adata, n_clusters, use_rep='norm_emb', method=method, start=start, end=end, increment=increment)

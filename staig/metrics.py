@@ -76,7 +76,7 @@ def kBET_single(matrix, batch, type_ = None, k0 = 20, knn=None, subsample=0.5, h
         return ro.r("mean(batch.estimate$stats$kBET.observed,na.rm=T)")
 
 ##### BatchKL  adata_integraed.obsm["X_emb"]#############
-def BatchKL(adata_integrated, batch_column="batch", emb_key="norm_emb"):
+def BatchKL(adata_integrated, batch_column="batch", emb_key="emb"):
    
     with localconverter(ro.default_converter + pandas2ri.converter):
         meta_data = ro.conversion.py2rpy(adata_integrated.obs)

@@ -7,12 +7,13 @@ import pandas as pd
 import os
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from scipy.spatial.distance import cdist
+from scipy.spatial.distance import cdist,euclidean,cosine
 from scipy.special import softmax
 from anndata import AnnData
 from scipy.linalg import block_diag
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.cluster import KMeans
+from tqdm import tqdm
 
 def generate_pseudo_labels(img_emb, n_clusters):
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(img_emb)
@@ -101,23 +102,25 @@ class LoadSingle10xAdata:
 
         graph_neigh = self.adata.obsm['graph_neigh']
         node_emb = self.adata.obsm['img_emb']
-        if self.kernel == 'euclidean':
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros_like(graph_neigh)  
 
-            euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
+        
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):  
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = euclidean(node_emb[i], node_emb[j])
 
-   
-            edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
-
-            edge_probabilities = np.zeros_like(edge_weights)
-            for i in range(edge_weights.shape[0]):
-
-                non_zero_indices = edge_weights[i] != 0
-                non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
+        edge_probabilities = np.zeros_like(edge_weights)
+        for i in tqdm(range(num_nodes), desc="Calculating edge_probabilities"):
+            non_zero_indices = edge_weights[i] != 0
+            if non_zero_indices.any():  
+                non_zero_weights = np.log(edge_weights[i][non_zero_indices]) 
                 softmax_weights = softmax(non_zero_weights)
                 edge_probabilities[i][non_zero_indices] = softmax_weights
 
-            self.adata.obsm['edge_probabilities'] = edge_probabilities
+        self.adata.obsm['edge_probabilities'] = edge_probabilities
+
 
         if self.kernel=='rbf':
 
@@ -165,19 +168,21 @@ class LoadSingle10xAdata:
         embedding = pca.fit_transform(embedding)
         node_emb = embedding
 
-        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros((num_nodes, num_nodes))
 
-
-        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = cosine(node_emb[i], node_emb[j])
 
         edge_probabilities = np.zeros_like(edge_weights)
-        for i in range(edge_weights.shape[0]):
-
+        for i in range(num_nodes):
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = edge_weights[i][non_zero_indices]  
-            softmax_weights = softmax(non_zero_weights)
-            edge_probabilities[i][non_zero_indices] = softmax_weights
+            if non_zero_indices.any():
+                non_zero_weights = edge_weights[i][non_zero_indices]
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
 
         self.adata.obsm['edge_probabilities'] = edge_probabilities
 
@@ -211,12 +216,9 @@ class LoadSingleAdata:
         self.filter_na = filter_na
         self.n_top_genes = n_top_genes
 
-
     def load_data(self):
         self.adata = sc.read_h5ad(self.path)   
         self.adata.var_names_make_unique()
-
-
 
     def construct_interaction(self):
         position = self.adata.obsm['spatial']
@@ -265,25 +267,24 @@ class LoadSingleAdata:
     def preprocess(self):
         sc.pp.highly_variable_genes(self.adata, flavor="seurat_v3", n_top_genes=self.n_top_genes)
 
-
     def calculate_edge_weights(self):
-
         graph_neigh = self.adata.obsm['graph_neigh']
         node_emb = self.adata.obsm['img_emb']
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros_like(graph_neigh)  
 
-
-        euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
-
-
-        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):  
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = euclidean(node_emb[i], node_emb[j])
 
         edge_probabilities = np.zeros_like(edge_weights)
-        for i in range(edge_weights.shape[0]):
+        for i in tqdm(range(num_nodes), desc="Calculating edge_probabilities"):
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
-            softmax_weights = softmax(non_zero_weights)
-            edge_probabilities[i][non_zero_indices] = softmax_weights
+            if non_zero_indices.any():  
+                non_zero_weights = np.log(edge_weights[i][non_zero_indices]) 
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
 
         self.adata.obsm['edge_probabilities'] = edge_probabilities
 
@@ -297,19 +298,21 @@ class LoadSingleAdata:
         embedding = pca.fit_transform(embedding)
         node_emb = embedding
 
-        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros((num_nodes, num_nodes))
 
-
-        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = cosine(node_emb[i], node_emb[j])
 
         edge_probabilities = np.zeros_like(edge_weights)
-        for i in range(edge_weights.shape[0]):
-
+        for i in range(num_nodes):
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = edge_weights[i][non_zero_indices]  
-            softmax_weights = softmax(non_zero_weights)
-            edge_probabilities[i][non_zero_indices] = softmax_weights
+            if non_zero_indices.any():
+                non_zero_weights = edge_weights[i][non_zero_indices]
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
 
         self.adata.obsm['edge_probabilities'] = edge_probabilities
 
@@ -329,7 +332,6 @@ class LoadSingleAdata:
 
         return self.adata
     
-
 class LoadBatchAdata_cross:
     def __init__(self, file_list: list, n_top_genes: int = 3000, n_neighbors: int = 5,
                  image_emb: bool = False, label: bool = True, filter_na: bool = True, do_log:bool=True):
@@ -421,27 +423,29 @@ class LoadBatchAdata_cross:
         matrix_list = [i.obsm['local_graph'] for i in self.adata_list]
         adjacency = block_diag(*matrix_list)
         self.merged_adata.obsm['graph_neigh'] = adjacency
-        return self.merged_adata
+
+        mask_list = [np.ones_like(i.obsm['local_graph'], dtype=int) for i in self.adata_list]
+        mask = block_diag(*mask_list)
+        self.merged_adata.obsm['mask_neigh'] = mask
 
     def calculate_edge_weights(self):
-
         graph_neigh = self.merged_adata.obsm['graph_neigh']
         node_emb = self.merged_adata.obsm['img_emb']
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros_like(graph_neigh)  
 
-
-        euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
-
-
-        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):  
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = euclidean(node_emb[i], node_emb[j])
 
         edge_probabilities = np.zeros_like(edge_weights)
-        for i in range(edge_weights.shape[0]):
-
+        for i in tqdm(range(num_nodes), desc="Calculating edge_probabilities"):
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
-            softmax_weights = softmax(non_zero_weights)
-            edge_probabilities[i][non_zero_indices] = softmax_weights
+            if non_zero_indices.any():  
+                non_zero_weights = np.log(edge_weights[i][non_zero_indices]) 
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
 
         self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
 
@@ -455,19 +459,21 @@ class LoadBatchAdata_cross:
         embedding = pca.fit_transform(embedding)
         node_emb = embedding
 
-        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros((num_nodes, num_nodes))
 
-
-        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = cosine(node_emb[i], node_emb[j])
 
         edge_probabilities = np.zeros_like(edge_weights)
-        for i in range(edge_weights.shape[0]):
-
+        for i in range(num_nodes):
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = edge_weights[i][non_zero_indices]  
-            softmax_weights = softmax(non_zero_weights)
-            edge_probabilities[i][non_zero_indices] = softmax_weights
+            if non_zero_indices.any():
+                non_zero_weights = edge_weights[i][non_zero_indices]
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
 
         self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
 
@@ -480,8 +486,6 @@ class LoadBatchAdata_cross:
         else:
             self.calculate_edge_weights_gene()
         return self.merged_adata
-
-
 
 class LoadBatch10xAdata:
     def __init__(self, dataset_path: str, file_list: list, n_top_genes: int = 3000, n_neighbors: int = 5,
@@ -578,36 +582,33 @@ class LoadBatch10xAdata:
         matrix_list = [i.obsm['local_graph'] for i in self.adata_list]
         adjacency = block_diag(*matrix_list)
         self.merged_adata.obsm['graph_neigh'] = adjacency
-        return self.merged_adata
+
+        mask_list = [np.ones_like(i.obsm['local_graph'], dtype=int) for i in self.adata_list]
+        mask = block_diag(*mask_list)
+        self.merged_adata.obsm['mask_neigh'] = mask
 
     def calculate_edge_weights(self):
-        print('now calculate edge weights')
-
         graph_neigh = self.merged_adata.obsm['graph_neigh']
         node_emb = self.merged_adata.obsm['img_emb']
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros_like(graph_neigh)  
 
-  
-        euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):  
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = euclidean(node_emb[i], node_emb[j])
 
-   
-        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
-  
         edge_probabilities = np.zeros_like(edge_weights)
-        for i in range(edge_weights.shape[0]):
-         
+        for i in tqdm(range(num_nodes), desc="Calculating edge_probabilities"):
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
-            softmax_weights = softmax(non_zero_weights)
-            edge_probabilities[i][non_zero_indices] = softmax_weights
+            if non_zero_indices.any():  
+                non_zero_weights = np.log(edge_weights[i][non_zero_indices]) 
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
 
         self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
-        pseudo_labels = generate_pseudo_labels(node_emb, 300)
-        self.merged_adata.obs['pseudo_labels'] = pd.Categorical(pseudo_labels)
-        print('calculate edge weights done')
 
     def calculate_edge_weights_gene(self):
-        print('now calculate edge weights')
 
         graph_neigh = self.merged_adata.obsm['graph_neigh']
         node_emb = self.merged_adata.obsm['feat']
@@ -617,22 +618,23 @@ class LoadBatch10xAdata:
         embedding = pca.fit_transform(embedding)
         node_emb = embedding
 
-        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros((num_nodes, num_nodes))
 
-
-        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = cosine(node_emb[i], node_emb[j])
 
         edge_probabilities = np.zeros_like(edge_weights)
-        for i in range(edge_weights.shape[0]):
-
+        for i in range(num_nodes):
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = edge_weights[i][non_zero_indices]  
-            softmax_weights = softmax(non_zero_weights)
-            edge_probabilities[i][non_zero_indices] = softmax_weights
+            if non_zero_indices.any():
+                non_zero_weights = edge_weights[i][non_zero_indices]
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
 
         self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
-        print('calculate edge weights done')
 
     def run(self):
         self.load_data()
@@ -685,10 +687,8 @@ class LoadBatchAdata:
             sc.pp.normalize_total(i, target_sum=1e4)
             sc.pp.log1p(i)
             adata = self.construct_interaction(input_adata=i)
-            # print(i + ' build local graph done')
             self.adata_list.append(adata)
             self.adata_len.append(adata.X.shape[0])
-            # print(i + ' added to list')
         print('load all slices done')
 
         return self.adata_list
@@ -721,27 +721,29 @@ class LoadBatchAdata:
         matrix_list = [i.obsm['local_graph'] for i in self.adata_list]
         adjacency = block_diag(*matrix_list)
         self.merged_adata.obsm['graph_neigh'] = adjacency
-        return self.merged_adata
+
+        mask_list = [np.ones_like(i.obsm['local_graph'], dtype=int) for i in self.adata_list]
+        mask = block_diag(*mask_list)
+        self.merged_adata.obsm['mask_neigh'] = mask
 
     def calculate_edge_weights(self):
-
         graph_neigh = self.merged_adata.obsm['graph_neigh']
         node_emb = self.merged_adata.obsm['img_emb']
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros_like(graph_neigh)  
 
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):  
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = euclidean(node_emb[i], node_emb[j])
 
-        euclidean_distances = cdist(node_emb, node_emb, metric='euclidean')
-
-
-        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
- 
         edge_probabilities = np.zeros_like(edge_weights)
-        for i in range(edge_weights.shape[0]):
-   
+        for i in tqdm(range(num_nodes), desc="Calculating edge_probabilities"):
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = np.log(edge_weights[i][non_zero_indices] + 1)  
-            softmax_weights = softmax(non_zero_weights)
-            edge_probabilities[i][non_zero_indices] = softmax_weights
+            if non_zero_indices.any():  
+                non_zero_weights = np.log(edge_weights[i][non_zero_indices]) 
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
 
         self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
 
@@ -755,19 +757,21 @@ class LoadBatchAdata:
         embedding = pca.fit_transform(embedding)
         node_emb = embedding
 
-        euclidean_distances = cdist(node_emb, node_emb, metric='cosine')
+        num_nodes = node_emb.shape[0]
+        edge_weights = np.zeros((num_nodes, num_nodes))
 
-  
-        edge_weights = np.where(graph_neigh == 1, euclidean_distances, 0)
-
+        for i in tqdm(range(num_nodes), desc="Calculating distances"):
+            for j in range(num_nodes):
+                if graph_neigh[i, j] == 1:  
+                    edge_weights[i, j] = cosine(node_emb[i], node_emb[j])
 
         edge_probabilities = np.zeros_like(edge_weights)
-        for i in range(edge_weights.shape[0]):
-
+        for i in range(num_nodes):
             non_zero_indices = edge_weights[i] != 0
-            non_zero_weights = edge_weights[i][non_zero_indices]  
-            softmax_weights = softmax(non_zero_weights)
-            edge_probabilities[i][non_zero_indices] = softmax_weights
+            if non_zero_indices.any():
+                non_zero_weights = edge_weights[i][non_zero_indices]
+                softmax_weights = softmax(non_zero_weights)
+                edge_probabilities[i][non_zero_indices] = softmax_weights
 
         self.merged_adata.obsm['edge_probabilities'] = edge_probabilities
 

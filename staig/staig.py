@@ -15,7 +15,7 @@ from .utils import clustering
 from sklearn import metrics
 import scanpy as sc
 from sklearn.cluster import KMeans
-from .net import Encoder, MVmodel, SVmodel, drop_feature, dropout_adj, random_dropout_adj,Discriminator
+from .net import Encoder, MVmodel, SVmodel, drop_feature, dropout_adj, random_dropout_adj, Discriminator,multiple_dropout_average
 from scipy.special import softmax
 import pickle
 import datetime
@@ -30,6 +30,7 @@ from sklearn.metrics import silhouette_score, davies_bouldin_score,calinski_hara
 import tqdm
 from .metrics import BatchKL
 import harmonypy as hm
+from torch_geometric.utils import to_torch_coo_tensor
 
 
 
@@ -78,51 +79,26 @@ class STAIG:
         self.bar_format = '{l_bar}{bar}| [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
         self.encoder = Encoder(self.num_gene, self.num_hidden, self.activation, base_model=self.base_model, k=self.num_layers).to(self.device)
         self.adata = None
+        self.mask_slices = True
 
         if single:
-            self.model = SVmodel(self.encoder, self.num_hidden, self.num_proj_hidden, self.tau).to(self.device)
-            # self.drop_edge_rate_1 = config['drop_edge_rate_1']
-            # self.drop_edge_rate_2 = config['drop_edge_rate_2']
+            self.model = SVmodel(self.encoder, self.num_hidden, self.num_proj_hidden, self.tau).to(self.device).double()
+            # self.model = SVmodel(self.encoder, self.num_hidden, self.num_proj_hidden, self.tau).to(self.device)
         else:
-            self.model = MVmodel(self.encoder, self.num_hidden, self.num_proj_hidden, self.tau).to(self.device)
-        # print('start para')
-        # self.export_model_parameters("initial_model_parameterszzz.csv")
-        # print('done para')
+            self.model = MVmodel(self.encoder, self.num_hidden, self.num_proj_hidden, self.tau).to(self.device).double()
 
         self.optimizer = torch.optim.Adam(
             self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
-
-    def export_model_parameters(self, file_name):
-
-        data = []
-
-        sorted_names = sorted(self.model.state_dict().keys())
-
-        for name in sorted_names:
-            param = self.model.state_dict()[name]
-
-            param_data = param.cpu().numpy().flatten()
-
-            for value in param_data:
-                data.append([name, value])
-
-
-        parameters_df = pd.DataFrame(data, columns=['Layer', 'Value'])
-
-        parameters_df.to_csv(file_name, index=False)
-
-
 
     def train(self):
         print('=== prepare for training ===')
         if self.adata is None:
             raise ValueError("adata not load!")
         if self.single is False:
-            features_matrix = torch.FloatTensor(self.adata.obsm['feat'].copy()).to(self.device)
+            features_matrix = torch.FloatTensor(self.adata.obsm['feat'].copy()).to(self.device).double()
         
-            graph_neigh = torch.FloatTensor(self.adata.obsm['graph_neigh'].copy()).to(self.device)
-            edge_probabilities = torch.FloatTensor(self.adata.obsm['edge_probabilities'].copy()).to(self.device)
-            # pseudo_labels = generate_pseudo_labels(self.adata.obsm['img_emb'], 80).to(self.device)
+            graph_neigh = torch.FloatTensor(self.adata.obsm['graph_neigh'].copy()).to(self.device).double()
+            edge_probabilities = torch.FloatTensor(self.adata.obsm['edge_probabilities'].copy()).to(self.device).double()
             if 'pseudo_labels' in self.adata.obs:
                 pseudo_labels = torch.tensor(self.adata.obs['pseudo_labels'].cat.codes).to(self.device)
             else:                
@@ -132,8 +108,6 @@ class STAIG:
                     pseudo_labels = generate_pseudo_labels(self.adata.obsm['img_emb'])
                 pseudo_labels = pseudo_labels.to(self.device)
 
-                # pseudo_labels = generate_pseudo_labels(self.adata.obsm['img_emb'], self.config['k']).to(self.device)
-
             edge_index = adj_to_edge_index(graph_neigh)
             edge_probs = convert_edge_probabilities(graph_neigh, edge_probabilities)
 
@@ -143,8 +117,8 @@ class STAIG:
             for epoch in tqdm.tqdm(range(1, self.num_epochs + 1), bar_format=self.bar_format):
                 self.model.train()
                 self.optimizer.zero_grad()
-                edge_index_1 = dropout_adj(edge_index, edge_probs, force_undirected=True)[0]
-                edge_index_2 = dropout_adj(edge_index, edge_probs, force_undirected=True)[0]
+                edge_index_1 = multiple_dropout_average(edge_index, edge_probs, force_undirected=True)[0]
+                edge_index_2 = multiple_dropout_average(edge_index, edge_probs, force_undirected=True)[0]
                 x_1 = drop_feature(features_matrix, self.drop_feature_rate_1)
                 x_2 = drop_feature(features_matrix, self.drop_feature_rate_2)
                 z1 = self.model(x_1, edge_index_1)
@@ -152,17 +126,21 @@ class STAIG:
                 loss = self.model.contrastive_loss_bias(z1, z2, graph_neigh, pseudo_labels)
                 loss.backward()
                 self.optimizer.step()
-                # if epoch == 5:
-                #     self.export_model_parameters(f"model_parameters_after_epoch_{epoch}.csv")
-                now = datetime.datetime.now()
-                # print('(T) | Epoch={:03d}, loss={:.4f}, this epoch {}, total {}'.format(epoch, loss.item(), now - prev, now - start))
-                prev = now
             torch.save(self.model.state_dict(), 'model.pt')
 
         if self.single:
-            features_matrix = torch.FloatTensor(self.adata.obsm['feat'].copy()).to(self.device)
-            edge_probabilities = torch.FloatTensor(self.adata.obsm['edge_probabilities'].copy()).to(self.device)
-            graph_neigh = torch.FloatTensor(self.adata.obsm['graph_neigh'].copy()).to(self.device)
+            features_matrix = torch.FloatTensor(self.adata.obsm['feat'].copy()).to(self.device).double()
+            edge_probabilities = torch.FloatTensor(self.adata.obsm['edge_probabilities'].copy()).to(self.device).double()
+            graph_neigh = torch.FloatTensor(self.adata.obsm['graph_neigh'].copy()).to(self.device).double()
+            # features_matrix = torch.FloatTensor(self.adata.obsm['feat'].copy()).to(self.device)
+            # edge_probabilities = torch.FloatTensor(self.adata.obsm['edge_probabilities'].copy()).to(self.device)
+            # graph_neigh = torch.FloatTensor(self.adata.obsm['graph_neigh'].copy()).to(self.device)
+
+            if ('mask_neigh' in self.adata.obsm) and (self.mask_slices):
+                print('Consider intra slice')
+                mask_neigh = torch.FloatTensor(self.adata.obsm['mask_neigh'].copy()).to(self.device)
+            else: 
+                 mask_neigh = None
             edge_index = adj_to_edge_index(graph_neigh)
             edge_probs = convert_edge_probabilities(graph_neigh, edge_probabilities)
 
@@ -173,20 +151,15 @@ class STAIG:
 
                 self.model.train()
                 self.optimizer.zero_grad()
-                # edge_index_1 = random_dropout_adj(edge_index, p=self.drop_edge_rate_1, force_undirected=True)[0]
-                # edge_index_2 = random_dropout_adj(edge_index, p=self.drop_edge_rate_2, force_undirected=True)[0]
-                edge_index_1 = dropout_adj(edge_index, edge_probs, force_undirected=True)[0]
-                edge_index_2 = dropout_adj(edge_index, edge_probs, force_undirected=True)[0]
+                edge_index_1 = multiple_dropout_average(edge_index, edge_probs, force_undirected=True)[0]
+                edge_index_2 = multiple_dropout_average(edge_index, edge_probs, force_undirected=True)[0]
                 x_1 = drop_feature(features_matrix, self.drop_feature_rate_1)
                 x_2 = drop_feature(features_matrix, self.drop_feature_rate_2)
                 z1 = self.model(x_1, edge_index_1)
                 z2 = self.model(x_2, edge_index_2)
-                loss = self.model.contrastive_loss(z1, z2, graph_neigh)
+                loss = self.model.contrastive_loss(z1, z2, graph_neigh, mask=mask_neigh)
                 loss.backward()
                 self.optimizer.step()
-                now = datetime.datetime.now()
-                # print('(T) | Epoch={:03d}, loss={:.4f}, this epoch {}, total {}'.format(epoch, loss.item(), now - prev, now - start))
-                prev = now
             torch.save(self.model.state_dict(), 'model.pt')
     
     
@@ -195,10 +168,15 @@ class STAIG:
         print("=== load ===")
         self.model.load_state_dict(torch.load('model.pt'))
         self.model.eval()
-        features_matrix = torch.FloatTensor(self.adata.obsm['feat'].copy()).to(self.device)
-        graph_neigh = torch.FloatTensor(self.adata.obsm['graph_neigh'].copy()).to(self.device)
+        if self.single:
+            features_matrix = torch.FloatTensor(self.adata.obsm['feat'].copy()).to(self.device).double()
+            graph_neigh = torch.FloatTensor(self.adata.obsm['graph_neigh'].copy()).to(self.device).double()
+        else:
+            features_matrix = torch.FloatTensor(self.adata.obsm['feat'].copy()).to(self.device).double()
+            graph_neigh = torch.FloatTensor(self.adata.obsm['graph_neigh'].copy()).to(self.device).double()
         edge_index = adj_to_edge_index(graph_neigh)
         self.adata.obsm['emb'] = self.model(features_matrix, edge_index).detach().cpu().numpy()
+        print(self.adata.obsm['emb'])
         print('embedding generated, go clustering')
     
     
@@ -223,8 +201,8 @@ class STAIG:
             print('NMI:', NMI)
         else:
             print("calculate SC and DB")
-            SC = silhouette_score(self.adata.obsm['norm_emb'], self.adata.obs['domain'])
-            DB = davies_bouldin_score(self.adata.obsm['norm_emb'], self.adata.obs['domain'])
+            SC = silhouette_score(self.adata.obsm['emb'], self.adata.obs['domain'])
+            DB = davies_bouldin_score(self.adata.obsm['emb'], self.adata.obs['domain'])
             self.adata.uns['sc'] = SC
             self.adata.uns['db'] = DB
             print('SC:', SC)
@@ -252,12 +230,12 @@ class STAIG:
 
     def draw_umap(self):
         print('start umap')
-        sc.pp.neighbors(self.adata, use_rep='norm_emb')
+        sc.pp.neighbors(self.adata, use_rep='emb')
         sc.tl.umap(self.adata)
-        sc.pl.umap(self.adata, color='domain', show=True, save=str(self.args.slide)+ '_label.png')
-        sc.pl.umap(self.adata, color='batch', show=True, save=str(self.args.slide)+ '_batch.png')
+        sc.pl.umap(self.adata, color='domain', show=True, save=str(self.args.slide)+ 'domain.pdf')
+        sc.pl.umap(self.adata, color='batch', show=True, save=str(self.args.slide)+ '_batch.pdf')
         if self.args.label==True:
-            sc.pl.umap(self.adata, color='ground_truth', show=True, save=str(self.args.slide)+ '_label.png')
+            sc.pl.umap(self.adata, color='ground_truth', show=True, save=str(self.args.slide)+ '_label.pdf')
         
         
     def draw_horizontal(self):

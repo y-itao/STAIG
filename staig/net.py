@@ -31,7 +31,6 @@ class Encoder(torch.nn.Module):
             x = self.activation(self.conv[i](x, edge_index))
         return x
 
-
 class MVmodel(torch.nn.Module):
     def __init__(self, encoder: Encoder, num_hidden: int, num_proj_hidden: int,
                  tau: float = 0.5):
@@ -160,26 +159,7 @@ class SVmodel(torch.nn.Module):
         z2 = F.normalize(z2)
         return torch.mm(z1, z2.t())
 
-    def semi_loss(self, z1: torch.Tensor, z2: torch.Tensor):
-        f = lambda x: torch.exp(x / self.tau)
-        refl_sim = f(self.sim(z1, z1))
-        between_sim = f(self.sim(z1, z2))
-
-        return -torch.log(
-            between_sim.diag()
-            / (refl_sim.sum(1) + between_sim.sum(1) - refl_sim.diag()))
-
-    def loss(self, h1: torch.Tensor, h2: torch.Tensor,
-             mean: bool = True, batch_size: int = 0):
-
-        l1 = self.semi_loss(h1, h2)
-        l2 = self.semi_loss(h2, h1)
-        ret = (l1 + l2) * 0.5
-        ret = ret.mean() if mean else ret.sum()
-
-        return ret
-
-    def nei_con_loss(self,z1: torch.Tensor, z2: torch.Tensor, adj):
+    def nei_con_loss(self,z1: torch.Tensor, z2: torch.Tensor, adj, mask=None):
         '''neighbor contrastive loss'''
         adj = adj - torch.diag_embed(adj.diag())  # remove self-loop
         adj[adj > 0] = 1
@@ -187,8 +167,13 @@ class SVmodel(torch.nn.Module):
         nei_count = torch.squeeze(torch.tensor(nei_count))
 
         f = lambda x: torch.exp(x / self.tau)
-        intra_view_sim = f(self.sim(z1, z1))
-        inter_view_sim = f(self.sim(z1, z2))
+
+        if mask is None:
+            intra_view_sim = f(self.sim(z1, z1))
+            inter_view_sim = f(self.sim(z1, z2))
+        else:
+            intra_view_sim = f(self.sim(z1, z1)) * mask
+            inter_view_sim = f(self.sim(z1, z2)) * mask
 
         loss = (inter_view_sim.diag() + (intra_view_sim.mul(adj)).sum(1) + (inter_view_sim.mul(adj)).sum(1)) / (
                 intra_view_sim.sum(1) + inter_view_sim.sum(1) - intra_view_sim.diag())
@@ -196,10 +181,10 @@ class SVmodel(torch.nn.Module):
 
         return -torch.log(loss)
 
-    def contrastive_loss(self,z1: torch.Tensor, z2: torch.Tensor, adj,
+    def contrastive_loss(self,z1: torch.Tensor, z2: torch.Tensor, adj,mask=None,
                          mean: bool = True):
-        l1 = self.nei_con_loss(z1, z2, adj)
-        l2 = self.nei_con_loss(z2, z1, adj)
+        l1 = self.nei_con_loss(z1, z2, adj, mask)
+        l2 = self.nei_con_loss(z2, z1, adj, mask)
         ret = (l1 + l2) * 0.5
         ret = ret.mean() if mean else ret.sum()
 
@@ -224,8 +209,6 @@ def filter_adj(row: Tensor, col: Tensor, edge_attr: OptTensor,
 def dropout_adj(
         edge_index: Tensor,
         edge_attr: Tensor,
-        min_p: float = 0.1,
-        max_p: float = 0.9,
         force_undirected: bool = False,
         num_nodes: Optional[int] = None,
         training: bool = True,
@@ -239,12 +222,7 @@ def dropout_adj(
         mask = row <= col
         row, col, edge_attr = row[mask], col[mask], edge_attr[mask]
 
-
-    min_p_tensor = torch.tensor(min_p, device=torch.device('cpu'))
-    max_p_tensor = torch.tensor(max_p, device=torch.device('cpu'))
-
-
-    edge_attr_scaled = min_p_tensor + (max_p_tensor - min_p_tensor) * edge_attr
+    edge_attr_scaled = edge_attr
     edge_attr_scaled_cpu = edge_attr_scaled.to('cpu')
 
 
@@ -260,6 +238,42 @@ def dropout_adj(
         edge_index = torch.stack([row, col], dim=0)
 
     return edge_index, edge_attr
+
+def multiple_dropout_average(edge_index: Tensor,
+                             edge_attr: Tensor,
+                             num_trials: int = 10,
+                             force_undirected: bool = False,
+                             num_nodes: Optional[int] = None,
+                             threshold_ratio: float = 0.5,
+                             training: bool = True,
+                             device: str = 'cuda') -> Tuple[Tensor, Tensor]:
+    if not training:
+        return edge_index, edge_attr
+
+    if num_nodes is None:
+        num_nodes = edge_index.max().item() + 1
+
+    edge_index, edge_attr = edge_index.to(device), edge_attr.to(device)
+    simulation_flag = torch.tensor([False]) 
+
+    if simulation_flag.item():
+        edge_count = torch.zeros((num_nodes, num_nodes), dtype=torch.int32, device=device)
+        for _ in range(num_trials):
+            dropped_edge_index, _ = dropout_adj(
+                edge_index, edge_attr, force_undirected)
+            dropped_edge_index = dropped_edge_index.to(device)
+            src, dest = dropped_edge_index
+            edge_count[src, dest] += 1
+            if force_undirected:
+                edge_count[dest, src] += 1
+        threshold = int(num_trials * threshold_ratio)
+        mask = edge_count >= threshold
+        final_edge_index = mask.nonzero().t().contiguous()
+    else:
+        final_edge_index, _ = dropout_adj(
+            edge_index, edge_attr, force_undirected)
+    
+    return final_edge_index, edge_attr 
 
 
 def random_dropout_adj(
