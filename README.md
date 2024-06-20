@@ -13,7 +13,6 @@ We unveil Spatial Transcriptomics and Image-based Graph learning (STAIG), a deep
 
 ### Operating System Requirements
 
-- macOS: Mojave (10.14.1) or later versions.
 - Linux: Ubuntu 16.04 or newer.
 
 
