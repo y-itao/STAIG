@@ -170,7 +170,7 @@ vertical_merfish:
   drop_feature_rate_2: 0.2
   tau: 1
   tau_decay: 0.08
-  num_epochs: 350
+  num_epochs: 400
   weight_decay: 0.00001
   num_clusters: 8
   num_gene: 234

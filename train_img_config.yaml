@@ -8,8 +8,8 @@
   num_layers: 1
   drop_feature_rate_1: 0.1
   drop_feature_rate_2: 0.2
-  tau: 44
-  num_epochs: 360
+  tau: 35
+  num_epochs: 300
   weight_decay: 0.00001
   num_clusters: 7
   num_gene: 3000
@@ -70,9 +70,9 @@ integration_horizontal:
   drop_edge_rate_2: 0.3
   drop_feature_rate_1: 0.2
   drop_feature_rate_2: 0.2
-  tau: 15.0
+  tau: 37.0
   tau_decay: 0.0
-  num_epochs: 20
+  num_epochs: 80
   weight_decay: 0.00001
   num_clusters: 25
   num_gene: 3050
@@ -148,15 +148,35 @@ integration_vertical07087576:
   drop_edge_rate_2: 0.3
   drop_feature_rate_1: 0.1
   drop_feature_rate_2: 0.2
-  tau: 26
+  tau: 24
   tau_decay: 0.08
-  num_epochs: 550
+  num_epochs: 400
   weight_decay: 0.00001
   num_clusters: 7
   num_gene: 931
   num_neigh: 5
 
 integration_cross:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0
+  drop_feature_rate_2: 0
+  tau: 6
+  tau_decay: 0.08
+  num_epochs: 180
+  weight_decay: 0.00001
+  num_clusters: 8
+  num_gene: 970
+  num_neigh: 5
+
+integration_cross1:
   seed: 39788
   learning_rate: 0.0005
   num_hidden: 64
@@ -173,7 +193,7 @@ integration_cross:
   num_epochs: 180
   weight_decay: 0.00001
   num_clusters: 8
-  num_gene: 970
+  num_gene: 984
   num_neigh: 5
 
 integration_cross-1:
@@ -228,9 +248,9 @@ test7576:
   drop_edge_rate_2: 0.3
   drop_feature_rate_1: 0.1
   drop_feature_rate_2: 0.2
-  tau: 23
+  tau: 17
   tau_decay: 0.08
-  num_epochs: 560
+  num_epochs: 420
   weight_decay: 0.00001
   num_clusters: 7
   num_gene: 2296
@@ -297,26 +317,6 @@ integration_vertical076976:
   num_gene: 1213
   num_neigh: 5
 
-test:
-  seed: 39788
-  learning_rate: 0.0005
-  num_hidden: 64
-  num_proj_hidden: 64
-  activation: 'prelu'
-  base_model: 'GCNConv'
-  num_layers: 1
-  drop_edge_rate_1: 0.1
-  drop_edge_rate_2: 0.3
-  drop_feature_rate_1: 0.1
-  drop_feature_rate_2: 0.2
-  tau: 1
-  tau_decay: 0.08
-  num_epochs: 350
-  weight_decay: 0.00001
-  num_clusters: 8
-  num_gene: 234
-  num_neigh: 5
-
 Human_Breast_Cancer:
   seed: 39788
   learning_rate: 0.0005
@@ -358,3 +358,23 @@ Human_Breast_Cancer:
   num_gene: 3000
   num_neigh: 3
   num_im_neigh: 2
+
+test:
+  seed: 39788
+  learning_rate: 0.0005
+  num_hidden: 64
+  num_proj_hidden: 64
+  activation: 'prelu'
+  base_model: 'GCNConv'
+  num_layers: 1
+  drop_edge_rate_1: 0.1
+  drop_edge_rate_2: 0.3
+  drop_feature_rate_1: 0.1
+  drop_feature_rate_2: 0.2
+  tau: 26
+  tau_decay: 0.08
+  num_epochs: 550
+  weight_decay: 0.00001
+  num_clusters: 7
+  num_gene: 931
+  num_neigh: 5
