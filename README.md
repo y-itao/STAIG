@@ -60,7 +60,7 @@ Actual installation time depends on network conditions and takes about 15 minute
 
 Note that we conducted experiments with the A100/3090 on Linux. 
 
-Before running, please download the compressed folder of the `Dataset` from [Google drive](https://drive.google.com/file/d/1dN9pLRyVXFXLxopt2FD82NDrwFqUjliu/view?usp=sharing) and decompress it in `./`, After decompression, the dir structure under `./` will be: 
+Before running, please download the compressed folder of the `Dataset` from [Google drive](https://drive.google.com/file/d/1XfBSPM-Dg-Cl3T1PTgMZqXM9jNWuqMQF/view?usp=sharing) and decompress it in `./`, After decompression, the dir structure under `./` will be: 
 
 ```bash
 /home/.../STAIG
