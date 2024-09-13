@@ -118,6 +118,9 @@ class LoadSingle10xAdata:
                 non_zero_weights = np.log(edge_weights[i][non_zero_indices]) 
                 softmax_weights = softmax(non_zero_weights)
                 edge_probabilities[i][non_zero_indices] = softmax_weights
+                # non_zero_weights = edge_weights[i][non_zero_indices]
+                # normalized_weights = non_zero_weights / np.sum(non_zero_weights * adjacency_matrix[i][non_zero_indices])
+                # edge_probabilities[i][non_zero_indices] = normalized_weights
 
         self.adata.obsm['edge_probabilities'] = edge_probabilities
 
@@ -183,6 +186,9 @@ class LoadSingle10xAdata:
                 non_zero_weights = edge_weights[i][non_zero_indices]
                 softmax_weights = softmax(non_zero_weights)
                 edge_probabilities[i][non_zero_indices] = softmax_weights
+                # non_zero_weights = edge_weights[i][non_zero_indices]
+                # normalized_weights = non_zero_weights / np.sum(non_zero_weights * adjacency_matrix[i][non_zero_indices])
+                # edge_probabilities[i][non_zero_indices] = normalized_weights
 
         self.adata.obsm['edge_probabilities'] = edge_probabilities
 
