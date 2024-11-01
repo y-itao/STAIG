@@ -51,7 +51,7 @@ Actual installation time depends on network conditions and takes about 15 minute
    conda install pytorch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 pytorch-cuda=12.1 -c pytorch -c nvidia
 
    ## step2 Installing Pyg
-   conda install pyg -c pyg
+   conda install pyg=*=*cu* -c pyg
       
    ## step3 Download other dependencies
    pip install -r requirements.txt
