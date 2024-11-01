@@ -19,3 +19,6 @@ threadpoolctl==3.4.0
 notebook
 harmonypy
 anndata2ri
+GeneClust
+PyWGCNA
+spatialde
