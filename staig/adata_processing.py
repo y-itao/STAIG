@@ -14,6 +14,10 @@ from scipy.linalg import block_diag
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.cluster import KMeans
 from tqdm import tqdm
+import scGeneClust as gc
+import PyWGCNA
+import NaiveDE
+import SpatialDE
 
 def generate_pseudo_labels(img_emb, n_clusters):
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(img_emb)
@@ -21,7 +25,7 @@ def generate_pseudo_labels(img_emb, n_clusters):
     return pseudo_labels
 
 class LoadSingle10xAdata:
-    def __init__(self, path: str, n_top_genes: int = 3000, n_neighbors: int = 3, image_emb: bool = False, label: bool = True, filter_na: bool = True):
+    def __init__(self, path: str, n_top_genes: int = 3000, n_neighbors: int = 3, image_emb: bool = False, label: bool = True, filter_na: bool = True,select = 'default'):
         self.path = path
         self.n_top_genes = n_top_genes
         self.n_neighbors = n_neighbors
@@ -30,6 +34,7 @@ class LoadSingle10xAdata:
         self.label = label
         self.filter_na = filter_na
         self.kernel = 'euclidean'
+        self.select = 'default'
 
 
     def load_data(self):
@@ -38,11 +43,68 @@ class LoadSingle10xAdata:
 
 
     def preprocess(self):
-        sc.pp.highly_variable_genes(self.adata, flavor="seurat_v3", n_top_genes=self.n_top_genes)
-        sc.pp.normalize_total(self.adata, target_sum=1e4)
-        sc.pp.log1p(self.adata)
-        sc.pp.scale(self.adata, zero_center=False, max_value=10)
+        if self.select == 'default':
+            sc.pp.highly_variable_genes(self.adata, flavor="seurat_v3", n_top_genes=self.n_top_genes)
+            sc.pp.normalize_total(self.adata, target_sum=1e4)
+            sc.pp.log1p(self.adata)
+            sc.pp.scale(self.adata, zero_center=False, max_value=10)
+        if self.select == 'mvp':
+            sc.pp.highly_variable_genes(self.adata, flavor="seurat")
+            sc.pp.normalize_total(self.adata, target_sum=1e4)
+            sc.pp.log1p(self.adata)
+            sc.pp.scale(self.adata, zero_center=False, max_value=10)
+        if self.select == 'geneclust':
+            self.adata.X = self.adata.X.toarray()
+            info, selected_genes_ps = gc.scGeneClust(self.adata, n_var_clusters=200, version='fast', return_info=True)
+            top_variable_genes = selected_genes_ps.tolist()
+            self.adata.var['highly_variable'] = self.adata.var_names.isin(top_variable_genes)
+            sc.pp.normalize_total(self.adata, target_sum=1e4)
+            sc.pp.log1p(self.adata)
+            sc.pp.scale(self.adata, zero_center=False, max_value=10)
+        if self.select == 'wgcna':
+            pyWGCNA_data = PyWGCNA.WGCNA(name='data', 
+                              species='human', 
+                              anndata=self.adata, 
+                              outputPath='',
+                              save=True)
+            pyWGCNA_data.preprocess()
+            pyWGCNA_data.findModules()
+            module_colors = np.unique(pyWGCNA_data.datExpr.var['moduleColors']).tolist()
+            all_hub_genes = []
+            for module_color in module_colors:
+                df_hub_genes = pyWGCNA_data.top_n_hub_genes(moduleName=module_color, n=100)
+                gene_names = df_hub_genes.index.tolist()  
+                all_hub_genes.extend(gene_names)  
+            self.adata.var['highly_variable'] = self.adata.var_names.isin(all_hub_genes)
+            sc.pp.normalize_total(self.adata, target_sum=1e4)
+            sc.pp.log1p(self.adata)
+            sc.pp.scale(self.adata, zero_center=False, max_value=10)
 
+        if self.select == 'spatialde':
+            x_coords = self.adata.obsm['spatial'][:, 0]
+            y_coords = self.adata.obsm['spatial'][:, 1]
+            counts = pd.DataFrame(
+                self.adata.X.toarray(),
+                index=self.adata.obs_names,
+                columns=self.adata.var_names
+            )
+            counts = counts.T[counts.sum(0) >= 3].T
+            self.adata.obs['total_counts'] = np.ravel(self.adata.X.sum(axis=1))
+            sample_info = pd.DataFrame({
+                'x': x_coords,
+                'y': y_coords,
+                'total_counts': self.adata.obs['total_counts']
+            }, index=self.adata.obs_names)
+            norm_expr = NaiveDE.stabilize(counts.T).T
+            resid_expr = NaiveDE.regress_out(sample_info, norm_expr.T, 'np.log(total_counts)').T
+            sample_resid_expr = resid_expr.sample(n=1000, axis=1, random_state=1)
+            X = sample_info[['x', 'y']].values 
+            results = SpatialDE.run(X, resid_expr)
+            top_genes_list = results.sort_values('qval')['g'].head(1000).tolist()
+            self.adata.var['highly_variable'] = self.adata.var_names.isin(top_genes_list)
+            sc.pp.normalize_total(self.adata, target_sum=1e4)
+            sc.pp.log1p(self.adata)
+            sc.pp.scale(self.adata, zero_center=False, max_value=10)
     def construct_interaction(self):
         position = self.adata.obsm['spatial']
         distance_matrix = ot.dist(position, position, metric='euclidean')
@@ -118,9 +180,6 @@ class LoadSingle10xAdata:
                 non_zero_weights = np.log(edge_weights[i][non_zero_indices]) 
                 softmax_weights = softmax(non_zero_weights)
                 edge_probabilities[i][non_zero_indices] = softmax_weights
-                # non_zero_weights = edge_weights[i][non_zero_indices]
-                # normalized_weights = non_zero_weights / np.sum(non_zero_weights * adjacency_matrix[i][non_zero_indices])
-                # edge_probabilities[i][non_zero_indices] = normalized_weights
 
         self.adata.obsm['edge_probabilities'] = edge_probabilities
 
@@ -186,9 +245,6 @@ class LoadSingle10xAdata:
                 non_zero_weights = edge_weights[i][non_zero_indices]
                 softmax_weights = softmax(non_zero_weights)
                 edge_probabilities[i][non_zero_indices] = softmax_weights
-                # non_zero_weights = edge_weights[i][non_zero_indices]
-                # normalized_weights = non_zero_weights / np.sum(non_zero_weights * adjacency_matrix[i][non_zero_indices])
-                # edge_probabilities[i][non_zero_indices] = normalized_weights
 
         self.adata.obsm['edge_probabilities'] = edge_probabilities
 
@@ -404,12 +460,13 @@ class LoadBatchAdata_cross:
                 feat = adata_Vars.X[:]
             
 
-            scaler = StandardScaler()
+            # scaler = StandardScaler()
 
-            feat_standardized = scaler.fit_transform(feat)
+            # feat_standardized = scaler.fit_transform(feat)
             
 
-            feat_standardized_list.append(feat_standardized)
+            # feat_standardized_list.append(feat_standardized)
+            feat_standardized_list.append(feat)
 
 
         adata = AnnData.concatenate(*self.adata_list, join='outer')
@@ -790,3 +847,4 @@ class LoadBatchAdata:
         else:
             self.calculate_edge_weights_gene()
         return self.merged_adata
+    
