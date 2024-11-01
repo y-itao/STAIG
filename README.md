@@ -177,5 +177,5 @@ The data we used for training can be downloaded from [here]. We also provide dat
 This project is covered under the Apache 2.0 License.
 
 ## Acknowledgments
-Parts of our work are based on code from [GraphST](https://github.com/JinmiaoChenLab/GraphST)，[GCA](https://github.com/CRIPAC-DIG/GCA)，[GDCL](https://github.com/hzhao98/GDCL)以及[NCLA](https://github.com/shenxiaocam/NCLA).We are very grateful for their contributions. Thank WANG Tao for his assistance.
+Parts of our work are based on code from [GraphST](https://github.com/JinmiaoChenLab/GraphST)，[GCA](https://github.com/CRIPAC-DIG/GCA)，[GDCL](https://github.com/hzhao98/GDCL)以及[NCLA](https://github.com/shenxiaocam/NCLA).We are very grateful for their contributions. 
 
