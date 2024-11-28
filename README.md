@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/716726437.svg)](https://doi.org/10.5281/zenodo.14238885)
+
 # STAIG
 STAIG: Spatial Transcriptomics Analysis via Image-Aided Graph Contrastive Learning for Domain Deciphering and Alignment-Free Integration
 
