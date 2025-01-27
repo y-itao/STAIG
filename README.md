@@ -181,3 +181,5 @@ This project is covered under the Apache 2.0 License.
 ## Acknowledgments
 Parts of our work are based on code from [GraphST](https://github.com/JinmiaoChenLab/GraphST)，[GCA](https://github.com/CRIPAC-DIG/GCA)，[GDCL](https://github.com/hzhao98/GDCL)以及[NCLA](https://github.com/shenxiaocam/NCLA).We are very grateful for their contributions. 
 
+## Cite
+Yang, Y., Cui, Y., Zeng, X. et al. STAIG: Spatial transcriptomics analysis via image-aided graph contrastive learning for domain exploration and alignment-free integration. Nat Commun 16, 1067 (2025). https://doi.org/10.1038/s41467-025-56276-0
