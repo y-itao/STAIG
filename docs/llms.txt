@@ -1,0 +1,30 @@
+# STAIG
+
+> Spatial transcriptomics domain discovery and alignment-free tissue-slice integration using image-aided graph contrastive learning.
+
+Use STAIG on the output folder of your platform (staig.run("path/to/outs") reads Space Ranger, Visium HD, Xenium, MERSCOPE, CosMx, Stereo-seq, Slide-seq, seqFISH, tables) or on AnnData with obsm["spatial"], optionally with full-resolution H&E or aligned image features. It writes obs["staig_domain"], obsm["X_staig"] and metadata in uns["staig"]. This is an exploratory research method, not automatic cell-type annotation or geometric registration. Install from the repository; consult current signatures and input normalization before running.
+
+## Getting started
+
+- [README](https://raw.githubusercontent.com/y-itao/STAIG/v2/README.md): Project overview, installation, examples and citation.
+- [Installation](https://raw.githubusercontent.com/y-itao/STAIG/v2/docs/installation.md): Python, PyTorch, extras and operating-system guidance.
+- [Quick start](https://raw.githubusercontent.com/y-itao/STAIG/v2/docs/quickstart.md): Visium workflow and the AnnData input/output keys table.
+- [Input formats](https://raw.githubusercontent.com/y-itao/STAIG/v2/docs/input_formats.md): staig.read / staig run on Space Ranger, Visium HD, Xenium, MERSCOPE, CosMx, Stereo-seq, Slide-seq, seqFISH and generic tables; defaults, QC and validated vendor samples.
+- [API contract: AnnData keys](https://y-itao.github.io/STAIG/quickstart/#anndata-keys): Required coordinates, optional image features, sparse graphs, domains and metadata.
+- [Agent guide and presets](https://raw.githubusercontent.com/y-itao/STAIG/v2/docs/agent_guide.md): Four complete recipes, preset/cluster/seed selection, validation and resource limits.
+- [Presets reference](https://y-itao.github.io/STAIG/agent_guide/#choosing-n_clusters-preset-and-n_seeds): How auto selection works; list full configurations with staig presets --show-default.
+- [FAQ](https://raw.githubusercontent.com/y-itao/STAIG/v2/docs/faq.md): Common questions: inputs, images, presets, the settings of the paper, platforms.
+
+## Research and data
+
+- [Paper DOI](https://doi.org/10.1038/s41467-025-56276-0): Yang et al., Nature Communications 16, 1067 (2025).
+- [Zenodo data DOI](https://doi.org/10.5281/zenodo.14231773): Curated Dataset.zip; use staig.datasets.download_dataset for selective extraction.
+- [CITATION.cff](https://raw.githubusercontent.com/y-itao/STAIG/v2/CITATION.cff): Authors, paper citation and separate software archive DOI.
+- [CodeMeta](https://raw.githubusercontent.com/y-itao/STAIG/v2/codemeta.json): Machine-readable software metadata and license.
+
+## Optional
+
+- [Full documentation bundle](https://y-itao.github.io/STAIG/llms-full.txt): Generated concatenation of README, installation, quick start, tutorials, FAQ and agent/MCP guides.
+- [MCP tools](https://raw.githubusercontent.com/y-itao/STAIG/v2/docs/mcp.md): Optional FastMCP stdio server and Claude client configuration.
+- [Coding-agent instructions](https://raw.githubusercontent.com/y-itao/STAIG/v2/AGENTS.md): Repository setup, tests, module map and invariants.
+- [Runnable CLI examples](https://github.com/y-itao/STAIG/tree/v2/examples): Visium, no-image, integration and large CPU scripts.

@@ -1,0 +1,18 @@
+name: Usage question
+description: Ask about inputs, parameters, interpreting results or integration.
+title: "[Question] "
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: What are you trying to do?
+      description: Describe your objective and the documentation or example you tried.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Data and environment
+      description: STAIG version, OS/device, platform, n_obs/n_vars, count normalization, slices, optional images/features and current parameters. Do not upload private data.
+    validations:
+      required: true

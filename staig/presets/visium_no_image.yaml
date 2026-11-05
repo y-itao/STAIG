@@ -1,0 +1,33 @@
+# STAIG preset 'visium_no_image' — full configuration (overrides vs. defaults: {'edge_removal': 'fixed', 'debias': 'none'})
+n_neighbors: 5
+edge_removal: fixed
+fixed_drop_prob: 0.2
+n_image_pcs: 16
+n_gene_pcs: 64
+drop_feature_rates:
+- 0.1
+- 0.2
+n_graph_samples: 1
+debias: none
+n_pseudo_labels: 40
+within_slice_negatives: true
+n_negatives: auto
+hidden_dim: 64
+proj_dim: 64
+n_layers: 1
+activation: prelu
+embedding: projection
+init: glorot
+tau: 10.0
+epochs: 400
+lr: 0.0005
+weight_decay: 1.0e-05
+lr_schedule: none
+loss_variant: full
+dtype: float32
+loss_chunk_size: 4096
+seed: 0
+device: auto
+deterministic: true
+verbose: true
+log_every: 50

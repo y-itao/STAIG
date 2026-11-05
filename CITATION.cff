@@ -1,0 +1,52 @@
+cff-version: 1.2.0
+message: >-
+  If you use STAIG, please cite the Nature Communications paper below and the
+  archived software release.
+type: software
+title: STAIG
+version: 2.0.0
+doi: 10.5281/zenodo.14238885
+url: https://github.com/y-itao/STAIG
+repository-code: https://github.com/y-itao/STAIG
+license: Apache-2.0
+authors:
+  - family-names: Yang
+    given-names: Y.
+  - family-names: Cui
+    given-names: Y.
+  - family-names: Zeng
+    given-names: X.
+  - family-names: Zhang
+    given-names: Y.
+  - family-names: Loza
+    given-names: M.
+  - family-names: Park
+    given-names: S.-J.
+  - family-names: Nakai
+    given-names: K.
+preferred-citation:
+  type: article
+  title: >-
+    STAIG: Spatial transcriptomics analysis via image-aided graph contrastive
+    learning for domain exploration and alignment-free integration
+  authors:
+    - family-names: Yang
+      given-names: Y.
+    - family-names: Cui
+      given-names: Y.
+    - family-names: Zeng
+      given-names: X.
+    - family-names: Zhang
+      given-names: Y.
+    - family-names: Loza
+      given-names: M.
+    - family-names: Park
+      given-names: S.-J.
+    - family-names: Nakai
+      given-names: K.
+  journal: Nature Communications
+  volume: '16'
+  issue: '1'
+  start: '1067'
+  year: 2025
+  doi: 10.1038/s41467-025-56276-0

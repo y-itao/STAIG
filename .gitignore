@@ -1,0 +1,44 @@
+# Python build products and local environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.venv/
+venv/
+env/
+.python-version
+
+# Test, coverage and lint caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Notebook checkpoints and generated documentation
+.ipynb_checkpoints/
+site/
+
+# Downloaded datasets and generated arrays (small test fixtures are allowed)
+Dataset/
+*.npy
+!tests/**/*.npy
+
+
+# Editor and operating-system files
+.idea/
+.vscode/
+*~
+.DS_Store
+Thumbs.db
+# Experiment outputs
+benchmarks/results/

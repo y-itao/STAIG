@@ -1,0 +1,102 @@
+site_name: STAIG
+site_description: Spatial domains and alignment-free integration with image-aided graph contrastive learning
+site_url: https://y-itao.github.io/STAIG/
+repo_url: https://github.com/y-itao/STAIG
+repo_name: y-itao/STAIG
+edit_uri: edit/main/docs/
+site_dir: examples/.cache/site
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.footer
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quick start: quickstart.md
+  - Input formats: input_formats.md
+  - Tutorials:
+      - Visium with histology: tutorials/visium_with_histology.md
+      - Without histology: tutorials/no_histology.md
+      - Integrating slices: tutorials/integration.md
+      - Large datasets: tutorials/large_datasets.md
+      - Custom image features: tutorials/custom_image_features.md
+      - Reproducing the paper: tutorials/reproducing_the_paper.md
+  - Executed notebooks:
+      - Visium with histology: examples/01_visium_dlpfc_with_histology.ipynb
+      - Stereo-seq without histology: examples/02_no_histology_stereo_seq.ipynb
+      - Two-slice integration: examples/03_integration_dlpfc_two_slices.ipynb
+      - Custom image features: examples/04_custom_image_features.ipynb
+  - API reference: api.md
+  - FAQ: faq.md
+  - Changelog: changelog.md
+  - For AI agents:
+      - Agent guide: agent_guide.md
+      - MCP server: mcp.md
+
+exclude_docs: |
+  dev/
+  .task-b/
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["."]
+          options:
+            allow_inspection: false
+            docstring_style: null
+            show_source: true
+            show_signature_annotations: true
+            separate_signature: true
+            show_root_heading: true
+            members_order: source
+  - mkdocs-jupyter:
+      include: ["*.ipynb"]
+      execute: false
+      include_source: true
+      cache_dir: docs/.task-b/cache/mkdocs-jupyter
+
+hooks:
+  - docs/dev/site_hooks.py
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+
+validation:
+  nav:
+    omitted_files: info
+  links:
+    not_found: warn
+    anchors: warn
+    unrecognized_links: warn

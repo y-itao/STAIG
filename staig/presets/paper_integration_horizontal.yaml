@@ -1,0 +1,33 @@
+# STAIG preset 'paper_integration_horizontal' — full configuration (overrides vs. defaults: {'tau': 37.0, 'epochs': 80, 'seed': 36666, 'debias': 'none', 'drop_feature_rates': (0.2, 0.2), 'n_neighbors': 3, 'edge_removal': 'gene', 'dtype': 'float64'})
+n_neighbors: 3
+edge_removal: gene
+fixed_drop_prob: 0.2
+n_image_pcs: 16
+n_gene_pcs: 64
+drop_feature_rates:
+- 0.2
+- 0.2
+n_graph_samples: 1
+debias: none
+n_pseudo_labels: 40
+within_slice_negatives: true
+n_negatives: auto
+hidden_dim: 64
+proj_dim: 64
+n_layers: 1
+activation: prelu
+embedding: projection
+init: glorot
+tau: 37.0
+epochs: 80
+lr: 0.0005
+weight_decay: 1.0e-05
+lr_schedule: none
+loss_variant: full
+dtype: float64
+loss_chunk_size: 4096
+seed: 36666
+device: auto
+deterministic: true
+verbose: true
+log_every: 50

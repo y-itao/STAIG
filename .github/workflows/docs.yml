@@ -1,0 +1,64 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "docs/**"
+      - "examples/**"
+      - "staig/**"
+      - "mkdocs.yml"
+      - "pyproject.toml"
+      - "CHANGELOG.md"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: docs/dev/requirements-site.txt
+      - name: Install documentation tools
+        run: python -m pip install -r docs/dev/requirements-site.txt
+      - name: Build documentation strictly
+        run: mkdocs build --strict
+      - uses: actions/upload-artifact@v4
+        with:
+          name: documentation-site
+          path: examples/.cache/site
+          include-hidden-files: true
+
+  deploy:
+    # Pages source must be "GitHub Actions" (Settings -> Pages); the site is the artifact built above.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: documentation-site
+          path: site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

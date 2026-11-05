@@ -1,0 +1,33 @@
+# STAIG preset 'paper_151673' — full configuration (overrides vs. defaults: {'tau': 35.0, 'epochs': 300, 'n_pseudo_labels': 80, 'seed': 39788, 'drop_feature_rates': (0.1, 0.2), 'n_image_pcs': 16, 'n_layers': 1, 'debias': 'pseudo_label', 'edge_removal': 'image', 'dtype': 'float64', 'loss_variant': 'v1'})
+n_neighbors: 5
+edge_removal: image
+fixed_drop_prob: 0.2
+n_image_pcs: 16
+n_gene_pcs: 64
+drop_feature_rates:
+- 0.1
+- 0.2
+n_graph_samples: 1
+debias: pseudo_label
+n_pseudo_labels: 80
+within_slice_negatives: true
+n_negatives: auto
+hidden_dim: 64
+proj_dim: 64
+n_layers: 1
+activation: prelu
+embedding: projection
+init: glorot
+tau: 35.0
+epochs: 300
+lr: 0.0005
+weight_decay: 1.0e-05
+lr_schedule: none
+loss_variant: v1
+dtype: float64
+loss_chunk_size: 4096
+seed: 39788
+device: auto
+deterministic: true
+verbose: true
+log_every: 50

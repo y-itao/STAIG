@@ -1,0 +1,7 @@
+# Static source inspection: the site does not need torch, training data or R.
+# Versions used by the Task B strict build.
+mkdocs==1.6.1
+mkdocs-material==9.8.0
+mkdocstrings[python]==1.0.8
+mkdocstrings-python==2.0.10
+mkdocs-jupyter==0.26.3

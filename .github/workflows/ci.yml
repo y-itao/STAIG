@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, v2]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: '3.10'
+          - os: ubuntu-latest
+            python-version: '3.11'
+          - os: ubuntu-latest
+            python-version: '3.12'
+          - os: windows-latest
+            python-version: '3.11'
+          - os: macos-latest
+            python-version: '3.11'
+    env:
+      CUDA_VISIBLE_DEVICES: ''
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install CPU PyTorch (Linux and Windows)
+        if: runner.os != 'macOS'
+        run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+      - name: Install PyTorch (macOS wheels have no CUDA)
+        if: runner.os == 'macOS'
+        run: pip install torch torchvision
+      - name: Install STAIG and test extras
+        run: pip install -e ".[dev,image,cluster,io]"
+      - name: Lint
+        run: ruff check staig tests
+      - name: Test (Ubuntu, including local HTTP dataset tests)
+        if: runner.os == 'Linux'
+        run: pytest -q
+      - name: Test (Windows and macOS)
+        if: runner.os != 'Linux'
+        run: pytest -q -x --ignore=tests/test_datasets.py

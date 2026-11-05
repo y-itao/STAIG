@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a reproducible STAIG error or unexpected result.
+title: "[Bug] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Expected and actual behavior
+      description: Include the complete traceback or stderr when available.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python, STAIG version or commit, torch/scanpy/anndata versions, CPU or GPU model, CUDA version, installation command and extras.
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Minimal data description
+      description: Platform, n_obs/n_vars, raw counts or normalization history, sparse/dense X, spatial coordinate units, batch key, image/feature shape and barcode alignment. Link public data or provide a synthetic reproducer; omit private records.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal runnable reproduction
+      description: Include input loading, preset, overrides, n_clusters, seed/n_seeds and command. State whether the issue persists on fresh AnnData.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Output or comparison
+      description: For quality/timing differences, include evaluation labels, refinement, timing scope and seeds.

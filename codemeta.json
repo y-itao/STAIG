@@ -1,0 +1,68 @@
+{
+  "@context": "https://w3id.org/codemeta/3.0",
+  "@type": "SoftwareSourceCode",
+  "name": "STAIG",
+  "version": "2.0.0",
+  "description": "Spatial transcriptomics analysis via image-aided graph contrastive learning for spatial domain exploration and alignment-free integration of tissue slices.",
+  "keywords": [
+    "spatial transcriptomics",
+    "graph contrastive learning",
+    "histology",
+    "spatial domains",
+    "alignment-free integration",
+    "AnnData",
+    "Scanpy",
+    "PyTorch"
+  ],
+  "license": "https://spdx.org/licenses/Apache-2.0",
+  "author": [
+    {
+      "@type": "Person",
+      "givenName": "Y.",
+      "familyName": "Yang"
+    },
+    {
+      "@type": "Person",
+      "givenName": "Y.",
+      "familyName": "Cui"
+    },
+    {
+      "@type": "Person",
+      "givenName": "X.",
+      "familyName": "Zeng"
+    },
+    {
+      "@type": "Person",
+      "givenName": "Y.",
+      "familyName": "Zhang"
+    },
+    {
+      "@type": "Person",
+      "givenName": "M.",
+      "familyName": "Loza"
+    },
+    {
+      "@type": "Person",
+      "givenName": "S.-J.",
+      "familyName": "Park"
+    },
+    {
+      "@type": "Person",
+      "givenName": "K.",
+      "familyName": "Nakai"
+    }
+  ],
+  "codeRepository": "https://github.com/y-itao/STAIG",
+  "referencePublication": {
+    "@type": "ScholarlyArticle",
+    "name": "STAIG: Spatial transcriptomics analysis via image-aided graph contrastive learning for domain exploration and alignment-free integration",
+    "identifier": "https://doi.org/10.1038/s41467-025-56276-0"
+  },
+  "programmingLanguage": "Python",
+  "runtimePlatform": [
+    "Python >=3.10",
+    "PyTorch >=2.1"
+  ],
+  "softwareRequirements": "See pyproject.toml; optional image, cluster, r and development extras.",
+  "url": "https://y-itao.github.io/STAIG/"
+}
